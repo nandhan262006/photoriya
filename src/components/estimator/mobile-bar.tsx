@@ -33,60 +33,75 @@ export function MobileEstimateBar() {
         style={
           expanded
             ? {
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                transformOrigin: "center center",
-                width: "calc(100vw - 2rem)",
-                maxWidth: "20rem",
-                maxHeight: "85vh",
+                top: "1rem",
+                left: "0.5rem",
+                right: "0.5rem",
+                maxHeight: "calc(100dvh - 2rem)",
+                width: "auto",
+                transform: "rotateY(0deg) rotateZ(0deg) translateX(0)",
               }
             : {
-                top: "auto",
-                bottom: "4rem",
+                top: "50%",
                 left: "0",
+                width: "6.5rem",
                 transform:
-                  "rotateY(22deg) rotateZ(-3deg) translateX(-6px)",
+                  "translateY(-50%) rotateY(20deg) rotateZ(-2deg) translateX(-8px)",
                 transformOrigin: "left center",
-                width: "7rem",
               }
         }
       >
         <div
-          className="flex flex-col overflow-hidden rounded-sm bg-white text-black shadow-2xl transition-all duration-500"
+          className="flex flex-col overflow-hidden rounded-r-xl rounded-l-sm bg-white text-black shadow-2xl transition-all duration-500"
           style={
             expanded
-              ? { maxHeight: "85vh", overflowY: "auto" }
-              : { cursor: "pointer" }
+              ? {
+                  maxHeight: "calc(100dvh - 2rem)",
+                  overflowY: "auto",
+                  borderRadius: "1rem",
+                }
+              : {
+                  cursor: "pointer",
+                  boxShadow:
+                    "6px 8px 24px rgba(0,0,0,0.22), 2px 2px 0 rgba(0,0,0,0.04) inset",
+                }
           }
           onClick={() => !expanded && setExpanded(true)}
         >
           {!expanded ? (
             <button
               type="button"
-              className="flex flex-col items-center gap-1 px-2 pt-2 pb-2.5 active:scale-95 transition-transform"
-              style={{
-                boxShadow:
-                  "6px 8px 24px rgba(0,0,0,0.25), 2px 2px 0 rgba(0,0,0,0.05) inset",
-              }}
+              className="flex flex-col items-center gap-1 px-2.5 pt-3 pb-3 active:scale-95 transition-transform"
             >
-              <span className="text-[9px] font-medium uppercase tracking-wider text-neutral-400">
-                Estimate
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-neutral-400">
+                EST
               </span>
-              <span className="font-heading text-xs font-bold tabular-nums leading-tight text-center">
+              <span className="font-heading text-[11px] font-bold tabular-nums leading-tight text-center">
                 {total}
               </span>
               {eventName && (
-                <span className="text-[9px] text-neutral-400 truncate max-w-full">
+                <span className="text-[8px] text-neutral-400 truncate max-w-full">
                   {eventName}
                 </span>
               )}
-              <div className="mt-0.5 h-0.5 w-8 rounded-full bg-neutral-200" />
+              <div className="mt-0.5 flex size-4 items-center justify-center rounded-full bg-neutral-100">
+                <svg
+                  width="8"
+                  height="8"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className="text-neutral-400"
+                >
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </div>
             </button>
           ) : (
             <div className="flex flex-col">
-              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
-                <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-5 py-3.5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                   Your Estimate
                 </span>
                 <button
@@ -95,18 +110,18 @@ export function MobileEstimateBar() {
                     e.stopPropagation();
                     setExpanded(false);
                   }}
-                  className="flex size-6 items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200"
+                  className="flex size-7 items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200"
                   aria-label="Close"
                 >
-                  <X className="size-3" />
+                  <X className="size-3.5" />
                 </button>
               </div>
-              <div className="flex flex-col gap-4 p-4">
-                <div className="rounded-lg bg-neutral-50 p-4">
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+              <div className="flex flex-col gap-4 p-5">
+                <div className="rounded-xl bg-neutral-50 p-5">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
                     Estimated total
                   </span>
-                  <div className="font-heading text-2xl font-bold tabular-nums mt-0.5">
+                  <div className="font-heading text-2xl font-bold tabular-nums mt-1">
                     {total}
                   </div>
                   {eventName && (

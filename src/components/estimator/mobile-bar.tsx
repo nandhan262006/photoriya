@@ -45,7 +45,7 @@ export function MobileEstimateBar() {
                 left: "0",
                 width: "6.5rem",
                 transform:
-                  "translateY(-50%) rotateY(20deg) rotateZ(-2deg) translateX(-8px)",
+                  "translateY(-50%) rotateY(-18deg) rotateZ(2deg) translateX(-8px)",
                 transformOrigin: "left center",
               }
         }
@@ -62,7 +62,7 @@ export function MobileEstimateBar() {
               : {
                   cursor: "pointer",
                   boxShadow:
-                    "6px 8px 24px rgba(0,0,0,0.22), 2px 2px 0 rgba(0,0,0,0.04) inset",
+                    "-2px 6px 20px rgba(0,0,0,0.20), 2px 2px 0 rgba(0,0,0,0.03) inset",
                 }
           }
           onClick={() => !expanded && setExpanded(true)}
@@ -83,19 +83,21 @@ export function MobileEstimateBar() {
                   {eventName}
                 </span>
               )}
-              <div className="mt-0.5 flex size-4 items-center justify-center rounded-full bg-neutral-100">
+              <div className="mt-0.5 flex items-center gap-0.5 text-[10px] font-medium text-neutral-400">
                 <svg
-                  width="8"
-                  height="8"
+                  width="10"
+                  height="10"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="3"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
-                  className="text-neutral-400"
+                  strokeLinejoin="round"
                 >
-                  <path d="M9 18l6-6-6-6" />
+                  <path d="M5 12h14" />
+                  <path d="M12 5l7 7-7 7" />
                 </svg>
+                <span className="tracking-wide">View</span>
               </div>
             </button>
           ) : (

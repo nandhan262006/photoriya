@@ -23,41 +23,53 @@ export function MobileEstimateBar() {
     <div className="lg:hidden" style={{ perspective: "1200px" }}>
       {expanded && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-500"
           onClick={() => setExpanded(false)}
         />
       )}
 
       <div
-        className={[
-          "fixed z-50 transition-all duration-500 ease-out",
+        className="fixed z-50 transition-all duration-500 ease-out"
+        style={
           expanded
-            ? "inset-0 flex items-center justify-center p-4"
-            : "left-0 bottom-16",
-        ].join(" ")}
+            ? {
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                transformOrigin: "center center",
+                width: "calc(100vw - 2rem)",
+                maxWidth: "20rem",
+                maxHeight: "85vh",
+              }
+            : {
+                top: "auto",
+                bottom: "4rem",
+                left: "0",
+                transform:
+                  "rotateY(22deg) rotateZ(-3deg) translateX(-6px)",
+                transformOrigin: "left center",
+                width: "7rem",
+              }
+        }
       >
         <div
-          className={[
-            "relative flex flex-col overflow-hidden rounded-sm bg-white text-black shadow-2xl",
-            "transition-all duration-500 ease-out",
-            expanded
-              ? "w-full max-w-xs max-h-[85vh] rotate-0 overflow-y-auto"
-              : "w-28 cursor-pointer active:scale-95",
-          ].join(" ")}
+          className="flex flex-col overflow-hidden rounded-sm bg-white text-black shadow-2xl transition-all duration-500"
           style={
             expanded
-              ? {}
-              : {
-                  transform: "rotateY(22deg) rotateZ(-3deg) translateX(-6px)",
-                  transformOrigin: "left center",
-                  boxShadow:
-                    "6px 8px 24px rgba(0,0,0,0.25), 2px 2px 0 rgba(0,0,0,0.05) inset",
-                }
+              ? { maxHeight: "85vh", overflowY: "auto" }
+              : { cursor: "pointer" }
           }
           onClick={() => !expanded && setExpanded(true)}
         >
-          {!expanded && (
-            <div className="flex flex-col items-center gap-1 px-2 pt-2 pb-2.5">
+          {!expanded ? (
+            <button
+              type="button"
+              className="flex flex-col items-center gap-1 px-2 pt-2 pb-2.5 active:scale-95 transition-transform"
+              style={{
+                boxShadow:
+                  "6px 8px 24px rgba(0,0,0,0.25), 2px 2px 0 rgba(0,0,0,0.05) inset",
+              }}
+            >
               <span className="text-[9px] font-medium uppercase tracking-wider text-neutral-400">
                 Estimate
               </span>
@@ -70,12 +82,10 @@ export function MobileEstimateBar() {
                 </span>
               )}
               <div className="mt-0.5 h-0.5 w-8 rounded-full bg-neutral-200" />
-            </div>
-          )}
-
-          {expanded && (
+            </button>
+          ) : (
             <div className="flex flex-col">
-              <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
                 <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                   Your Estimate
                 </span>

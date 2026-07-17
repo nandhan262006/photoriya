@@ -1,0 +1,251 @@
+import type { EventTemplate, ID, PriceRange } from "../types";
+import {
+  ALBUM_DEFAULTS,
+  DEFAULT_ADDON_PRICES,
+  DEFAULT_COVERAGE_PRICES,
+  DEFAULT_MAX_REELS,
+  DEFAULT_REEL_PRICE,
+  commonRecommendations,
+  deliverableRulesFor,
+} from "./shared";
+
+const ALL_COVERAGE: ID[] = [
+  "traditional_photography",
+  "traditional_videography",
+  "candid_photography",
+  "cinematic_videography",
+  "drone",
+];
+
+const PARTY_ADDONS: ID[] = [
+  "booth_360",
+  "instant_prints",
+  "photobooth",
+  "same_day_edit",
+  "led_screen",
+];
+
+const INTIMATE_ADDONS: ID[] = [
+  "instant_prints",
+  "photobooth",
+  "booth_360",
+  "live_streaming",
+];
+
+const CORPORATE_ADDONS: ID[] = [
+  "led_screen",
+  "live_streaming",
+  "instant_prints",
+  "photobooth",
+];
+
+const galaCoverage: Partial<Record<ID, PriceRange>> = {
+  candid_photography: { min: 35000, max: 55000 },
+  cinematic_videography: { min: 50000, max: 80000 },
+};
+
+export const birthdayTemplate: EventTemplate = {
+  id: "birthday",
+  name: "Birthday",
+  tagline: "Birthdays, milestone parties and surprise celebrations.",
+  description: "Capture every smile, cake cut and dance-floor moment.",
+  icon: "cake",
+  coverageOptions: ALL_COVERAGE,
+  addOnOptions: PARTY_ADDONS,
+  defaultCoveragePrices: DEFAULT_COVERAGE_PRICES,
+  defaultAddOnPrices: DEFAULT_ADDON_PRICES,
+  defaultReelPrice: DEFAULT_REEL_PRICE,
+  defaultMaxReels: DEFAULT_MAX_REELS,
+  subEvents: [
+    { id: "welcome", name: "Welcome" },
+    { id: "cake_cutting", name: "Cake Cutting", defaultSelected: true },
+    { id: "party", name: "Party", defaultSelected: true },
+    { id: "games", name: "Games & Activities" },
+    { id: "family_portraits", name: "Family Portraits" },
+    { id: "other", name: "Other" },
+  ],
+  album: ALBUM_DEFAULTS,
+  deliverableRules: deliverableRulesFor(ALL_COVERAGE, PARTY_ADDONS),
+  recommendationRules: [
+    {
+      id: "rec-birthday-booth",
+      suggest: { type: "addon", id: "photobooth" },
+      message: "A Photo Booth keeps younger guests entertained all evening.",
+      requiresAnySubEvent: ["party", "games"],
+    },
+    {
+      id: "rec-birthday-reels",
+      suggest: { type: "coverage", id: "candid_photography" },
+      message: "Add Candid Photography for lively, spontaneous moments.",
+      requiresAnySubEvent: ["party", "cake_cutting"],
+    },
+  ],
+};
+
+export const halfSareeTemplate: EventTemplate = {
+  id: "half_saree",
+  name: "Half Saree Ceremony",
+  tagline: "Rituals, draping and a portrait session to remember.",
+  description: "Document the traditions and the celebration around them.",
+  icon: "flower",
+  coverageOptions: ALL_COVERAGE,
+  addOnOptions: PARTY_ADDONS,
+  defaultCoveragePrices: DEFAULT_COVERAGE_PRICES,
+  defaultAddOnPrices: DEFAULT_ADDON_PRICES,
+  defaultReelPrice: DEFAULT_REEL_PRICE,
+  defaultMaxReels: DEFAULT_MAX_REELS,
+  subEvents: [
+    { id: "welcome", name: "Welcome" },
+    { id: "pasupu_bath", name: "Pasupu (Bath)" },
+    { id: "saree_draping", name: "Saree Draping", defaultSelected: true },
+    { id: "pooja", name: "Pooja" },
+    { id: "photoshoot", name: "Photoshoot", defaultSelected: true },
+    { id: "reception", name: "Reception" },
+    { id: "other", name: "Other" },
+  ],
+  album: ALBUM_DEFAULTS,
+  deliverableRules: deliverableRulesFor(ALL_COVERAGE, PARTY_ADDONS),
+  recommendationRules: [
+    {
+      id: "rec-half-saree-cinematic",
+      suggest: { type: "coverage", id: "cinematic_videography" },
+      message: "Cinematic Videography turns the draping ritual into a beautiful film.",
+      requiresAnySubEvent: ["saree_draping", "photoshoot"],
+    },
+    ...commonRecommendations().filter((r) => r.id !== "rec-candid-for-main"),
+  ],
+};
+
+export const babyShowerTemplate: EventTemplate = {
+  id: "baby_shower",
+  name: "Baby Shower",
+  tagline: "Blessings, games and tender moments with family.",
+  description: "A warm, intimate celebration captured end to end.",
+  icon: "baby",
+  coverageOptions: ALL_COVERAGE,
+  addOnOptions: INTIMATE_ADDONS,
+  defaultCoveragePrices: DEFAULT_COVERAGE_PRICES,
+  defaultAddOnPrices: DEFAULT_ADDON_PRICES,
+  defaultReelPrice: DEFAULT_REEL_PRICE,
+  defaultMaxReels: DEFAULT_MAX_REELS,
+  subEvents: [
+    { id: "welcome", name: "Welcome" },
+    { id: "pooja", name: "Pooja", defaultSelected: true },
+    { id: "blessings", name: "Blessings" },
+    { id: "games", name: "Games" },
+    { id: "photoshoot", name: "Photoshoot", defaultSelected: true },
+    { id: "other", name: "Other" },
+  ],
+  album: ALBUM_DEFAULTS,
+  deliverableRules: deliverableRulesFor(ALL_COVERAGE, INTIMATE_ADDONS),
+  recommendationRules: [
+    {
+      id: "rec-baby-shower-stream",
+      suggest: { type: "addon", id: "live_streaming" },
+      message: "Live Streaming lets faraway family share the blessings.",
+      requiresAnySubEvent: ["pooja", "blessings"],
+    },
+  ],
+};
+
+export const housewarmingTemplate: EventTemplate = {
+  id: "housewarming",
+  name: "Housewarming",
+  tagline: "Pooja, homam and family portraits for your new home.",
+  description: "Preserve the rituals and the joy of a new beginning.",
+  icon: "home",
+  coverageOptions: ALL_COVERAGE,
+  addOnOptions: INTIMATE_ADDONS,
+  defaultCoveragePrices: DEFAULT_COVERAGE_PRICES,
+  defaultAddOnPrices: DEFAULT_ADDON_PRICES,
+  defaultReelPrice: DEFAULT_REEL_PRICE,
+  defaultMaxReels: DEFAULT_MAX_REELS,
+  subEvents: [
+    { id: "pooja", name: "Pooja", defaultSelected: true },
+    { id: "homam", name: "Homam" },
+    { id: "lunch", name: "Lunch" },
+    { id: "family_portraits", name: "Family Portraits", defaultSelected: true },
+    { id: "other", name: "Other" },
+  ],
+  album: ALBUM_DEFAULTS,
+  deliverableRules: deliverableRulesFor(ALL_COVERAGE, INTIMATE_ADDONS),
+  recommendationRules: [
+    {
+      id: "rec-housewarming-candid",
+      suggest: { type: "coverage", id: "candid_photography" },
+      message: "Candid Photography captures the warmth of family gatherings.",
+      requiresAnySubEvent: ["lunch", "family_portraits"],
+    },
+  ],
+};
+
+export const anniversaryTemplate: EventTemplate = {
+  id: "anniversary",
+  name: "Anniversary",
+  tagline: "Renewal of vows, cake cutting and a celebratory party.",
+  description: "Celebrate milestones with coverage tailored to the occasion.",
+  icon: "gift",
+  coverageOptions: ALL_COVERAGE,
+  addOnOptions: PARTY_ADDONS,
+  defaultCoveragePrices: DEFAULT_COVERAGE_PRICES,
+  defaultAddOnPrices: DEFAULT_ADDON_PRICES,
+  defaultReelPrice: DEFAULT_REEL_PRICE,
+  defaultMaxReels: DEFAULT_MAX_REELS,
+  subEvents: [
+    { id: "welcome", name: "Welcome" },
+    { id: "cake_cutting", name: "Cake Cutting", defaultSelected: true },
+    { id: "renewal_vows", name: "Renewal of Vows" },
+    { id: "party", name: "Party", defaultSelected: true },
+    { id: "photoshoot", name: "Couple Photoshoot" },
+    { id: "other", name: "Other" },
+  ],
+  album: ALBUM_DEFAULTS,
+  deliverableRules: deliverableRulesFor(ALL_COVERAGE, PARTY_ADDONS),
+  recommendationRules: [
+    {
+      id: "rec-anniversary-cinematic",
+      suggest: { type: "coverage", id: "cinematic_videography" },
+      message: "A cinematic film of the vow renewal makes a treasured keepsake.",
+      requiresAnySubEvent: ["renewal_vows", "party"],
+    },
+  ],
+};
+
+export const corporateTemplate: EventTemplate = {
+  id: "corporate",
+  name: "Corporate Event",
+  tagline: "Conferences, launches, awards and gala dinners.",
+  description: "Polished coverage for brand events and corporate functions.",
+  icon: "building",
+  coverageOptions: ALL_COVERAGE,
+  addOnOptions: CORPORATE_ADDONS,
+  defaultCoveragePrices: DEFAULT_COVERAGE_PRICES,
+  defaultAddOnPrices: DEFAULT_ADDON_PRICES,
+  defaultReelPrice: DEFAULT_REEL_PRICE,
+  defaultMaxReels: DEFAULT_MAX_REELS,
+  subEvents: [
+    { id: "inauguration", name: "Inauguration", defaultSelected: true },
+    { id: "speeches", name: "Speeches / Keynote" },
+    { id: "panel", name: "Panel / Session" },
+    { id: "awards", name: "Awards", defaultSelected: true },
+    { id: "networking", name: "Networking" },
+    { id: "gala_dinner", name: "Gala Dinner", coverage: galaCoverage },
+    { id: "other", name: "Other" },
+  ],
+  album: ALBUM_DEFAULTS,
+  deliverableRules: deliverableRulesFor(ALL_COVERAGE, CORPORATE_ADDONS),
+  recommendationRules: [
+    {
+      id: "rec-corporate-stream",
+      suggest: { type: "addon", id: "live_streaming" },
+      message: "Live Streaming extends your event to remote employees and clients.",
+      requiresAnySubEvent: ["speeches", "panel", "inauguration"],
+    },
+    {
+      id: "rec-corporate-led",
+      suggest: { type: "addon", id: "led_screen" },
+      message: "An LED screen elevates keynotes and award moments.",
+      requiresAnySubEvent: ["speeches", "awards", "gala_dinner"],
+    },
+  ],
+};

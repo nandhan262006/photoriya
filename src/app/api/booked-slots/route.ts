@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { bookings } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const photographerId = request.nextUrl.searchParams.get("photographerId");
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     where: and(
       eq(bookings.photographerId, parseInt(photographerId)),
       eq(bookings.bookingDate, date),
-      sql`${bookings.status} != 'cancelled'`
+      ne(bookings.status, "cancelled")
     ),
     columns: { startTime: true, endTime: true },
   });

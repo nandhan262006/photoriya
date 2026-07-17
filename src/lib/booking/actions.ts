@@ -1,34 +1,25 @@
 "use server";
 
 import { db } from "@/db";
-import { bookings } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { bookings, services, photographers, timeSlots } from "@/db/schema";
+import { eq, and, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function getServices() {
   return db.query.services.findMany({
-    where: eq(
-      sql`${sql.raw("services.is_active")}`,
-      true
-    ),
+    where: eq(services.isActive, true),
   });
 }
 
 export async function getPhotographers() {
   return db.query.photographers.findMany({
-    where: eq(
-      sql`${sql.raw("photographers.is_active")}`,
-      true
-    ),
+    where: eq(photographers.isActive, true),
   });
 }
 
 export async function getTimeSlots(photographerId: number) {
   return db.query.timeSlots.findMany({
-    where: eq(
-      sql`${sql.raw("time_slots.photographer_id")}`,
-      photographerId
-    ),
+    where: eq(timeSlots.photographerId, photographerId),
   });
 }
 
@@ -40,7 +31,7 @@ export async function getBookedSlots(
     where: and(
       eq(bookings.photographerId, photographerId),
       eq(bookings.bookingDate, date),
-      sql`${bookings.status} != 'cancelled'`
+      ne(bookings.status, "cancelled")
     ),
     columns: { startTime: true, endTime: true },
   });
@@ -68,7 +59,7 @@ export async function createBooking(formData: FormData) {
       eq(bookings.photographerId, photographerId),
       eq(bookings.bookingDate, bookingDate),
       eq(bookings.startTime, startTime),
-      sql`${bookings.status} != 'cancelled'`
+      ne(bookings.status, "cancelled")
     ),
   });
 

@@ -157,6 +157,23 @@ function Watermark() {
   return <Image src={watermarkBase64} style={styles.watermark} />;
 }
 
+// A4 dimensions in points
+const PAGE_HEIGHT = 842;
+const PAGE_PADDING = 80; // 40 top + 40 bottom
+const AVAILABLE_HEIGHT = PAGE_HEIGHT - PAGE_PADDING;
+
+// Estimated heights for layout calculation
+const HEADER_HEIGHT = 40;
+const DIVIDER_HEIGHT = 32;
+const SECTION_TITLE_HEIGHT = 20;
+const META_ROW_HEIGHT = 16;
+const LINE_ITEM_HEIGHT = 20;
+const TOTAL_BOX_HEIGHT = 60;
+const DELIVERABLE_GROUP_HEIGHT = 18;
+const DELIVERABLE_ITEM_HEIGHT = 15;
+const DISCLAIMER_HEIGHT = 40;
+const FOOTER_HEIGHT = 30;
+
 function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfProps) {
   const today = new Date().toLocaleDateString("en-IN", {
     day: "numeric",
@@ -173,21 +190,53 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
     items: estimate.items.filter((i) => i.group === group),
   })).filter((g) => g.items.length > 0);
 
-  // Split line items across pages (max ~25 items per page)
-  const ITEMS_PER_PAGE = 25;
   const allLineItems = grouped.flatMap((g) =>
     g.items.map((item) => ({ ...item, group: g.group }))
   );
-  const itemPages: Array<typeof allLineItems> = [];
-  for (let i = 0; i < allLineItems.length; i += ITEMS_PER_PAGE) {
-    itemPages.push(allLineItems.slice(i, i + ITEMS_PER_PAGE));
-  }
-  // Ensure at least one page
-  if (itemPages.length === 0) itemPages.push([]);
+
+  // Calculate fixed overhead (everything except line items and deliverables)
+  const fixedHeight =
+    HEADER_HEIGHT +
+    DIVIDER_HEIGHT +
+    SECTION_TITLE_HEIGHT + // Event details title
+    META_ROW_HEIGHT * 2 + // Event type + Sub-events
+    DIVIDER_HEIGHT +
+    SECTION_TITLE_HEIGHT + // Price breakdown title
+    TOTAL_BOX_HEIGHT +
+    DISCLAIMER_HEIGHT +
+    FOOTER_HEIGHT;
+
+  // Calculate deliverables height
+  const deliverablesHeight = deliverables.reduce((acc, g) => {
+    return acc + DELIVERABLE_GROUP_HEIGHT + g.items.length * DELIVERABLE_ITEM_HEIGHT;
+  }, 0);
+
+  // Available space for line items
+  const availableForItems = AVAILABLE_HEIGHT - fixedHeight - (deliverables.length > 0 ? deliverablesHeight + DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT : 0);
+
+  // How many items fit on page 1
+  const itemsPerPage1 = Math.floor(availableForItems / LINE_ITEM_HEIGHT);
+  const needsSecondPage = allLineItems.length > itemsPerPage1;
+
+  // Page 1 items
+  const page1Items = allLineItems.slice(0, itemsPerPage1);
+  // Page 2+ items
+  const remainingItems = allLineItems.slice(itemsPerPage1);
+
+  // Check if remaining items + deliverables fit on page 2
+  const page2AvailableHeight = AVAILABLE_HEIGHT - SECTION_TITLE_HEIGHT - 10;
+  const page2ItemsHeight = remainingItems.length * LINE_ITEM_HEIGHT;
+  const page2NeedsThirdPage = page2ItemsHeight + deliverablesHeight + DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT + DISCLAIMER_HEIGHT + FOOTER_HEIGHT > page2AvailableHeight;
+
+  // Split remaining items if needed
+  const page2Items = page2NeedsThirdPage
+    ? remainingItems.slice(0, Math.floor((page2AvailableHeight - DIVIDER_HEIGHT - SECTION_TITLE_HEIGHT - DISCLAIMER_HEIGHT - FOOTER_HEIGHT) / LINE_ITEM_HEIGHT))
+    : remainingItems;
+  const page3Items = page2NeedsThirdPage ? remainingItems.slice(page2Items.length) : [];
 
   return (
     <Document>
-      {/* Page 1: Header + Event Details + Start of Price Breakdown */}
+      {/* Page 1: Header + Event Details + Price Breakdown (part 1) */}
       <Page size="A4" style={styles.page}>
         <Watermark />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -217,7 +266,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
         <View style={styles.divider} />
 
         <Text style={styles.sectionTitle}>Price breakdown</Text>
-        {itemPages[0]?.map((item) => (
+        {page1Items.map((item) => (
           <View key={item.id} style={styles.lineItem}>
             <View style={styles.lineLabel}>
               <Text>{item.label}</Text>
@@ -230,14 +279,60 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
             </Text>
           </View>
         ))}
+
+        {/* If everything fits, show total + deliverables on page 1 */}
+        {!needsSecondPage && (
+          <>
+            <View style={styles.totalBox}>
+              <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
+              <Text style={styles.totalValue}>
+                {estimate.isEmpty
+                  ? formatINR(0)
+                  : formatRangeShort(estimate.total)}
+              </Text>
+            </View>
+
+            {deliverables.length > 0 && (
+              <>
+                <View style={styles.divider} />
+                <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
+                {deliverables.map((g) => (
+                  <View key={g.group} style={{ marginBottom: 4 }}>
+                    <Text style={styles.groupLabel}>{g.group}</Text>
+                    {g.items.map((d) => (
+                      <View key={d.id} style={styles.deliverable}>
+                        <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
+                        <Text style={styles.deliverableText}>
+                          {d.label}
+                          {d.detail ? `  (${d.detail})` : ""}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </>
+            )}
+
+            <Text style={styles.disclaimer}>
+              Disclaimer: This is only an approximate estimate. The final quotation
+              may vary depending on event duration, location, travel, venue
+              restrictions and custom requirements. Please contact Photriya Studios
+              for a detailed, finalised quote.
+            </Text>
+
+            <Text style={styles.footer}>
+              Thank you for considering Photriya Studios.
+            </Text>
+          </>
+        )}
       </Page>
 
-      {/* Additional pages for remaining line items */}
-      {itemPages.slice(1).map((pageItems, pageIndex) => (
-        <Page key={`items-${pageIndex}`} size="A4" style={styles.page}>
+      {/* Page 2: Remaining items + Total + Deliverables */}
+      {needsSecondPage && (
+        <Page size="A4" style={styles.page}>
           <Watermark />
           <Text style={styles.sectionTitle}>Price breakdown (continued)</Text>
-          {pageItems.map((item) => (
+          {page2Items.map((item) => (
             <View key={item.id} style={styles.lineItem}>
               <View style={styles.lineLabel}>
                 <Text>{item.label}</Text>
@@ -250,54 +345,116 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
               </Text>
             </View>
           ))}
-        </Page>
-      ))}
 
-      {/* Final page: Total + Deliverables + Disclaimer */}
-      <Page size="A4" style={styles.page}>
-        <Watermark />
-
-        <View style={styles.totalBox}>
-          <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
-          <Text style={styles.totalValue}>
-            {estimate.isEmpty
-              ? formatINR(0)
-              : formatRangeShort(estimate.total)}
-          </Text>
-        </View>
-
-        {deliverables.length > 0 && (
-          <>
-            <View style={styles.divider} />
-            <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
-            {deliverables.map((g) => (
-              <View key={g.group} style={{ marginBottom: 4 }}>
-                <Text style={styles.groupLabel}>{g.group}</Text>
-                {g.items.map((d) => (
-                  <View key={d.id} style={styles.deliverable}>
-                    <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
-                    <Text style={styles.deliverableText}>
-                      {d.label}
-                      {d.detail ? `  (${d.detail})` : ""}
-                    </Text>
-                  </View>
-                ))}
+          {/* If no page 3 needed, show total + deliverables on page 2 */}
+          {!page2NeedsThirdPage && (
+            <>
+              <View style={styles.totalBox}>
+                <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
+                <Text style={styles.totalValue}>
+                  {estimate.isEmpty
+                    ? formatINR(0)
+                    : formatRangeShort(estimate.total)}
+                </Text>
               </View>
-            ))}
-          </>
-        )}
 
-        <Text style={styles.disclaimer}>
-          Disclaimer: This is only an approximate estimate. The final quotation
-          may vary depending on event duration, location, travel, venue
-          restrictions and custom requirements. Please contact Photriya Studios
-          for a detailed, finalised quote.
-        </Text>
+              {deliverables.length > 0 && (
+                <>
+                  <View style={styles.divider} />
+                  <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
+                  {deliverables.map((g) => (
+                    <View key={g.group} style={{ marginBottom: 4 }}>
+                      <Text style={styles.groupLabel}>{g.group}</Text>
+                      {g.items.map((d) => (
+                        <View key={d.id} style={styles.deliverable}>
+                          <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
+                          <Text style={styles.deliverableText}>
+                            {d.label}
+                            {d.detail ? `  (${d.detail})` : ""}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ))}
+                </>
+              )}
 
-        <Text style={styles.footer}>
-          Thank you for considering Photriya Studios.
-        </Text>
-      </Page>
+              <Text style={styles.disclaimer}>
+                Disclaimer: This is only an approximate estimate. The final quotation
+                may vary depending on event duration, location, travel, venue
+                restrictions and custom requirements. Please contact Photriya Studios
+                for a detailed, finalised quote.
+              </Text>
+
+              <Text style={styles.footer}>
+                Thank you for considering Photriya Studios.
+              </Text>
+            </>
+          )}
+        </Page>
+      )}
+
+      {/* Page 3: Final remaining items + Total + Deliverables */}
+      {page2NeedsThirdPage && (
+        <Page size="A4" style={styles.page}>
+          <Watermark />
+          <Text style={styles.sectionTitle}>Price breakdown (continued)</Text>
+          {page3Items.map((item) => (
+            <View key={item.id} style={styles.lineItem}>
+              <View style={styles.lineLabel}>
+                <Text>{item.label}</Text>
+                {item.detail ? (
+                  <Text style={styles.lineDetail}>{item.detail}</Text>
+                ) : null}
+              </View>
+              <Text style={styles.linePrice}>
+                {formatRangeShort({ min: item.min, max: item.max })}
+              </Text>
+            </View>
+          ))}
+
+          <View style={styles.totalBox}>
+            <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
+            <Text style={styles.totalValue}>
+              {estimate.isEmpty
+                ? formatINR(0)
+                : formatRangeShort(estimate.total)}
+            </Text>
+          </View>
+
+          {deliverables.length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
+              {deliverables.map((g) => (
+                <View key={g.group} style={{ marginBottom: 4 }}>
+                  <Text style={styles.groupLabel}>{g.group}</Text>
+                  {g.items.map((d) => (
+                    <View key={d.id} style={styles.deliverable}>
+                      <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
+                      <Text style={styles.deliverableText}>
+                        {d.label}
+                        {d.detail ? `  (${d.detail})` : ""}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </>
+          )}
+
+          <Text style={styles.disclaimer}>
+            Disclaimer: This is only an approximate estimate. The final quotation
+            may vary depending on event duration, location, travel, venue
+            restrictions and custom requirements. Please contact Photriya Studios
+            for a detailed, finalised quote.
+          </Text>
+
+          <Text style={styles.footer}>
+            Thank you for considering Photriya Studios.
+          </Text>
+        </Page>
+      )}
     </Document>
   );
 }

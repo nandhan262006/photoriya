@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -25,9 +26,8 @@ export function AdminSidebar() {
   return (
     <div className="w-64 border-r bg-card flex flex-col h-screen sticky top-0">
       <div className="p-4 border-b">
-        <Link href="/admin" className="flex items-center gap-2">
-          <Camera className="h-5 w-5" />
-          <span className="font-semibold">StudioBook</span>
+        <Link href="/admin" className="flex items-center">
+          <Image src="/NAVIBAR.png" alt="StudioBook" width={140} height={40} priority />
         </Link>
       </div>
 

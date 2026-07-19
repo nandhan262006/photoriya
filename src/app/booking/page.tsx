@@ -1,3 +1,5 @@
+import Link from "next/link";
+import Image from "next/image";
 import { getServices, getPhotographers } from "@/lib/booking/actions";
 import { BookingFlow } from "@/components/booking/booking-flow";
 
@@ -13,7 +15,9 @@ export default async function BookingPage() {
     <div className="min-h-screen">
       <header className="border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-2">
-          <span className="text-xl font-semibold">StudioBook</span>
+          <Link href="/" className="flex items-center">
+            <Image src="/NAVIBAR.png" alt="StudioBook" width={140} height={40} priority />
+          </Link>
           <span className="text-muted-foreground">/</span>
           <span className="text-muted-foreground">Book a Session</span>
         </div>

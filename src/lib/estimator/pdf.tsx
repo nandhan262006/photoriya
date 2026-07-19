@@ -7,12 +7,15 @@
  */
 import {
   Document,
+  Image,
   Page,
   StyleSheet,
   Text,
   View,
   renderToBuffer,
 } from "@react-pdf/renderer";
+import fs from "fs";
+import path from "path";
 import { formatINR, formatRangeShort } from "./format";
 import type {
   DeliverableGroup,
@@ -20,6 +23,13 @@ import type {
   EstimatorState,
   EventTemplate,
 } from "./types";
+
+// Load watermark image as base64
+function getWatermarkBase64(): string {
+  const imagePath = path.join(process.cwd(), "public", "NAVIBAR.png");
+  const imageBuffer = fs.readFileSync(imagePath);
+  return `data:image/png;base64,${imageBuffer.toString("base64")}`;
+}
 
 const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
 
@@ -118,6 +128,14 @@ const styles = StyleSheet.create({
     color: "#aaaaaa",
     textAlign: "center",
   },
+  watermark: {
+    position: "absolute",
+    top: 350,
+    left: 150,
+    width: 300,
+    height: 100,
+    opacity: 0.5,
+  },
 });
 
 interface PdfProps {
@@ -125,6 +143,18 @@ interface PdfProps {
   state: EstimatorState;
   estimate: EstimateBreakdown;
   deliverables: DeliverableGroup[];
+}
+
+function Watermark() {
+  let watermarkBase64: string | null = null;
+  try {
+    watermarkBase64 = getWatermarkBase64();
+  } catch {
+    // Watermark image not found
+  }
+
+  if (!watermarkBase64) return null;
+  return <Image src={watermarkBase64} style={styles.watermark} />;
 }
 
 function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfProps) {
@@ -143,9 +173,23 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
     items: estimate.items.filter((i) => i.group === group),
   })).filter((g) => g.items.length > 0);
 
+  // Split line items across pages (max ~25 items per page)
+  const ITEMS_PER_PAGE = 25;
+  const allLineItems = grouped.flatMap((g) =>
+    g.items.map((item) => ({ ...item, group: g.group }))
+  );
+  const itemPages: Array<typeof allLineItems> = [];
+  for (let i = 0; i < allLineItems.length; i += ITEMS_PER_PAGE) {
+    itemPages.push(allLineItems.slice(i, i + ITEMS_PER_PAGE));
+  }
+  // Ensure at least one page
+  if (itemPages.length === 0) itemPages.push([]);
+
   return (
     <Document>
+      {/* Page 1: Header + Event Details + Start of Price Breakdown */}
       <Page size="A4" style={styles.page}>
+        <Watermark />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <View>
             <Text style={styles.brand}>Photriya Studios</Text>
@@ -173,28 +217,45 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
         <View style={styles.divider} />
 
         <Text style={styles.sectionTitle}>Price breakdown</Text>
-        {grouped.length === 0 ? (
-          <Text style={{ color: "#888888" }}>No items selected.</Text>
-        ) : (
-          grouped.map((g) => (
-            <View key={g.group} style={{ marginBottom: 4 }}>
-              <Text style={styles.groupLabel}>{g.group}</Text>
-              {g.items.map((item) => (
-                <View key={item.id} style={styles.lineItem}>
-                  <View style={styles.lineLabel}>
-                    <Text>{item.label}</Text>
-                    {item.detail ? (
-                      <Text style={styles.lineDetail}>{item.detail}</Text>
-                    ) : null}
-                  </View>
-                  <Text style={styles.linePrice}>
-                    {formatRangeShort({ min: item.min, max: item.max })}
-                  </Text>
-                </View>
-              ))}
+        {itemPages[0]?.map((item) => (
+          <View key={item.id} style={styles.lineItem}>
+            <View style={styles.lineLabel}>
+              <Text>{item.label}</Text>
+              {item.detail ? (
+                <Text style={styles.lineDetail}>{item.detail}</Text>
+              ) : null}
             </View>
-          ))
-        )}
+            <Text style={styles.linePrice}>
+              {formatRangeShort({ min: item.min, max: item.max })}
+            </Text>
+          </View>
+        ))}
+      </Page>
+
+      {/* Additional pages for remaining line items */}
+      {itemPages.slice(1).map((pageItems, pageIndex) => (
+        <Page key={`items-${pageIndex}`} size="A4" style={styles.page}>
+          <Watermark />
+          <Text style={styles.sectionTitle}>Price breakdown (continued)</Text>
+          {pageItems.map((item) => (
+            <View key={item.id} style={styles.lineItem}>
+              <View style={styles.lineLabel}>
+                <Text>{item.label}</Text>
+                {item.detail ? (
+                  <Text style={styles.lineDetail}>{item.detail}</Text>
+                ) : null}
+              </View>
+              <Text style={styles.linePrice}>
+                {formatRangeShort({ min: item.min, max: item.max })}
+              </Text>
+            </View>
+          ))}
+        </Page>
+      ))}
+
+      {/* Final page: Total + Deliverables + Disclaimer */}
+      <Page size="A4" style={styles.page}>
+        <Watermark />
 
         <View style={styles.totalBox}>
           <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>

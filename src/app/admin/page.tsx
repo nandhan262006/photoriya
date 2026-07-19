@@ -1,6 +1,3 @@
-import { db } from "@/db";
-import { bookings, services, photographers } from "@/db/schema";
-import { count, eq, sql } from "drizzle-orm";
 import {
   CalendarCheck,
   Camera,
@@ -10,40 +7,13 @@ import {
 } from "lucide-react";
 
 async function getStats() {
-  const [bookingCount] = await db
-    .select({ count: count() })
-    .from(bookings);
-  const [serviceCount] = await db
-    .select({ count: count() })
-    .from(services);
-  const [photographerCount] = await db
-    .select({ count: count() })
-    .from(photographers);
-  const [confirmed] = await db
-    .select({ count: count() })
-    .from(bookings)
-    .where(eq(bookings.status, "confirmed"));
-
-  const revenue = await db
-    .select({
-      total: sql<string>`COALESCE(SUM(CAST(${bookings.totalPrice} AS DECIMAL)), 0)`,
-    })
-    .from(bookings)
-    .where(eq(bookings.status, "confirmed"));
-
-  const recentBookings = await db.query.bookings.findMany({
-    with: { service: true, photographer: true },
-    orderBy: (bookings, { desc }) => [desc(bookings.createdAt)],
-    limit: 5,
-  });
-
   return {
-    totalBookings: bookingCount.count,
-    totalServices: serviceCount.count,
-    totalPhotographers: photographerCount.count,
-    confirmedBookings: confirmed.count,
-    revenue: revenue[0]?.total || "0",
-    recentBookings,
+    totalBookings: 0,
+    totalServices: 0,
+    totalPhotographers: 0,
+    confirmedBookings: 0,
+    revenue: "0",
+    recentBookings: [],
   };
 }
 
@@ -101,39 +71,13 @@ export default async function AdminDashboard() {
             </tr>
           </thead>
           <tbody>
-            {stats.recentBookings.map((b) => (
-              <tr key={b.id} className="border-t">
-                <td className="p-3">
-                  <p className="font-medium">{b.clientName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {b.clientEmail}
-                  </p>
-                </td>
-                <td className="p-3 text-sm">{b.service?.name}</td>
-                <td className="p-3 text-sm">{b.photographer?.name}</td>
-                <td className="p-3 text-sm">
-                  {b.bookingDate} {b.startTime}
-                </td>
-                <td className="p-3">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      b.status === "confirmed"
-                        ? "bg-green-100 text-green-700"
-                        : b.status === "completed"
-                          ? "bg-blue-100 text-blue-700"
-                          : b.status === "cancelled"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {b.status}
-                  </span>
-                </td>
-                <td className="p-3 text-sm font-medium">
-                  ${Number(b.totalPrice).toFixed(0)}
+            {stats.recentBookings.length === 0 && (
+              <tr>
+                <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                  No bookings yet. Connect a database to see booking data.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

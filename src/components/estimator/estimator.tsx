@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { STEPS } from "@/lib/estimator/state";
@@ -57,15 +58,9 @@ function EstimatorShell() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-muted-foreground"
+            className="flex items-center text-sm font-medium text-foreground hover:text-muted-foreground"
           >
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                <circle cx="12" cy="13" r="3"/>
-              </svg>
-            </span>
-            <span>StudioBook</span>
+            <Image src="/NAVIBAR.png" alt="StudioBook" width={140} height={40} priority />
           </Link>
           <div className="flex flex-col leading-none text-right">
             <span className="text-xs text-muted-foreground">

@@ -1,12 +1,19 @@
-import { db } from "@/db";
 import { ServicesManager } from "@/components/admin/services-manager";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminServicesPage() {
-  const services = await db.query.services.findMany({
-    orderBy: (services, { asc }) => [asc(services.id)],
-  });
+  const services: Array<{
+    id: number;
+    name: string;
+    description: string;
+    duration: number;
+    price: string;
+    image: string;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  }> = [];
 
   return (
     <div>

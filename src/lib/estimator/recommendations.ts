@@ -36,6 +36,16 @@ export function evaluateRecommendations(
       ? state.selectedSubEvents.filter((id) => rule.whenSubEvents!.includes(id))
       : state.selectedSubEvents;
 
+    // Skip if the suggestion is already active in ANY selected sub-event
+    const alreadySelected = state.selectedSubEvents.some((id) => {
+      const cfg = state.subEventConfig[id];
+      if (!cfg) return false;
+      return rule.suggest.type === "coverage"
+        ? cfg.coverage.includes(rule.suggest.id)
+        : cfg.addOns.includes(rule.suggest.id);
+    });
+    if (alreadySelected) continue;
+
     const targets = candidates.filter((id) => {
       const cfg = state.subEventConfig[id];
       if (!cfg) return false;

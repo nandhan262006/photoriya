@@ -78,7 +78,7 @@ export async function upsertSubEvent(data: {
   defaultSelected: boolean;
   maxReels: number | null;
   sortOrder: number;
-  priceOverrides: Record<string, { min: number; max: number }>;
+  priceOverrides: Record<string, unknown>;
   templateId: number;
 }) {
   const payload = {

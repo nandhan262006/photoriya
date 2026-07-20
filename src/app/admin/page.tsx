@@ -1,7 +1,5 @@
 import {
   CalendarCheck,
-  Camera,
-  Users,
   DollarSign,
   TrendingUp,
 } from "lucide-react";
@@ -13,8 +11,6 @@ async function getStats() {
   const revenue = confirmed.reduce((sum: number, b: Record<string, unknown>) => sum + Number(b.totalPrice || 0), 0);
   return {
     totalBookings: bookings.length,
-    totalServices: 5,
-    totalPhotographers: 1,
     confirmedBookings: confirmed.length,
     revenue: String(revenue),
     recentBookings: bookings.slice(-5).reverse(),
@@ -31,8 +27,6 @@ export default async function AdminDashboard() {
       icon: CalendarCheck,
     },
     { label: "Confirmed", value: stats.confirmedBookings, icon: TrendingUp },
-    { label: "Services", value: stats.totalServices, icon: Camera },
-    { label: "Photographers", value: stats.totalPhotographers, icon: Users },
     {
       label: "Revenue",
       value: `\u20b9${Number(stats.revenue).toLocaleString("en-IN")}`,

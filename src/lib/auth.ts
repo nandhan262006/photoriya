@@ -12,10 +12,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Mock auth - replace with real database lookup later
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+
+        if (!adminEmail || !adminPassword) return null;
+        if (email !== adminEmail || password !== adminPassword) return null;
+
         return {
           id: "1",
-          email: credentials.email as string,
+          email,
           name: "Admin User",
           role: "admin",
         };

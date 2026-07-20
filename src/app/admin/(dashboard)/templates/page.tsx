@@ -1,16 +1,16 @@
 import { getTemplates } from "@/lib/admin/template-actions";
-import { TemplatesManager } from "./templates-manager";
+import { EditorShell } from "./editor-shell";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminTemplatesPage() {
+export default async function EstimatorEditorPage() {
   const templates = await getTemplates();
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Event Templates</h1>
+        <h1 className="text-2xl font-semibold">Estimator Editor</h1>
       </div>
-      <TemplatesManager templates={templates} />
+      <EditorShell templates={templates} />
     </div>
   );
 }

@@ -18,7 +18,7 @@ import { signOut } from "next-auth/react";
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
-  { href: "/admin/templates", label: "Templates", icon: FileText },
+  { href: "/admin/templates", label: "Estimator Editor", icon: FileText },
 ];
 
 export function AdminSidebar() {

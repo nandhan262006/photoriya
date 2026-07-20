@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, Loader2 } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminLoginPage() {
@@ -19,13 +19,12 @@ export default function AdminLoginPage() {
 
     const form = new FormData(e.currentTarget);
     const result = await signIn("credentials", {
-      email: form.get("email"),
       password: form.get("password"),
       redirect: false,
     });
 
     if (result?.error) {
-      toast.error("Invalid email or password");
+      toast.error("Invalid password");
       setLoading(false);
     } else {
       router.push("/admin");
@@ -37,27 +36,17 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm mx-auto px-4">
         <div className="border rounded-lg bg-background p-8">
           <div className="flex items-center gap-2 justify-center mb-6">
-            <Camera className="h-6 w-6" />
-            <span className="text-xl font-semibold">Photriya Studios Admin</span>
+            <Lock className="h-6 w-6" />
+            <span className="text-xl font-semibold">Photriya Studios</span>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="admin@photriya.com"
-                required
-              />
-            </div>
             <div>
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Enter admin password"
                 required
               />
             </div>

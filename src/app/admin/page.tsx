@@ -58,16 +58,16 @@ export default async function AdminDashboard() {
       </div>
 
       <h2 className="text-lg font-semibold mb-4">Recent Bookings</h2>
-      <div className="border rounded-lg overflow-hidden">
-        <table className="w-full">
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full min-w-[600px]">
           <thead className="bg-muted/50">
             <tr>
-              <th className="text-left p-3 text-sm font-medium">Client</th>
-              <th className="text-left p-3 text-sm font-medium">Service</th>
-              <th className="text-left p-3 text-sm font-medium">Photographer</th>
-              <th className="text-left p-3 text-sm font-medium">Date</th>
-              <th className="text-left p-3 text-sm font-medium">Status</th>
-              <th className="text-left p-3 text-sm font-medium">Amount</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Client</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Service</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Photographer</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Date</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Status</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Amount</th>
             </tr>
           </thead>
           <tbody>

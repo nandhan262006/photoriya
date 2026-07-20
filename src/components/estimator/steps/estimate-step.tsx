@@ -40,7 +40,7 @@ export function EstimateStep() {
             <span className="text-xs text-muted-foreground">
               Estimated total (approximate)
             </span>
-            <div className="mt-1 font-heading text-3xl font-semibold tabular-nums">
+            <div className="mt-1 font-heading text-2xl font-semibold tabular-nums sm:text-3xl">
               {formatRangeShort(estimate.total)}
             </div>
             {estimate.subEventCount > 0 && (

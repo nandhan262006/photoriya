@@ -72,7 +72,7 @@ function EstimatorShell() {
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:py-10">
         <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:gap-8">
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-hidden">
             <StepNav />
             <div className="mt-6">
               {state.step === 0 && <EventTypeStep />}

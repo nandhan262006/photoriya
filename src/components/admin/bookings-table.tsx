@@ -53,17 +53,17 @@ export function BookingsTable({ bookings }: BookingsTableProps) {
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <table className="w-full">
+    <div className="overflow-x-auto rounded-lg border">
+      <table className="w-full min-w-[700px]">
         <thead className="bg-muted/50">
           <tr>
-            <th className="text-left p-3 text-sm font-medium">Client</th>
-            <th className="text-left p-3 text-sm font-medium">Service</th>
-            <th className="text-left p-3 text-sm font-medium">Photographer</th>
-            <th className="text-left p-3 text-sm font-medium">Date & Time</th>
-            <th className="text-left p-3 text-sm font-medium">Amount</th>
-            <th className="text-left p-3 text-sm font-medium">Status</th>
-            <th className="text-left p-3 text-sm font-medium">Actions</th>
+            <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Client</th>
+            <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Service</th>
+            <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Photographer</th>
+            <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Date & Time</th>
+            <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Amount</th>
+            <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Status</th>
+            <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -96,7 +96,7 @@ export function BookingsTable({ bookings }: BookingsTableProps) {
               </td>
               <td className="p-3">
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                  className={`inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded-full text-xs font-medium ${
                     b.status === "confirmed"
                       ? "bg-green-100 text-green-700"
                       : b.status === "completed"
@@ -115,7 +115,7 @@ export function BookingsTable({ bookings }: BookingsTableProps) {
                     defaultValue={b.status}
                     onValueChange={(v) => v && handleStatusChange(b.id, v)}
                   >
-                    <SelectTrigger className="h-8 text-xs w-28">
+                    <SelectTrigger className="h-8 w-28 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

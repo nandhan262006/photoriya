@@ -52,7 +52,7 @@ export function EstimatePanel({ compact = false }: { compact?: boolean }) {
             <span className="text-xs text-muted-foreground">
               Estimated total (approx.)
             </span>
-            <span className="font-heading text-2xl font-semibold tabular-nums">
+            <span className="font-heading text-xl font-semibold tabular-nums sm:text-2xl">
               {formatRangeShort(estimate.total)}
             </span>
           </div>

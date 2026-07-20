@@ -15,7 +15,7 @@ export default function HomePage() {
       </header>
 
       <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl font-bold tracking-tight mb-4">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl mb-4">
           Capture Your Best Moments
         </h1>
         <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">

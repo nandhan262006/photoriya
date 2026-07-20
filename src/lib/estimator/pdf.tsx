@@ -154,6 +154,7 @@ function Watermark() {
   }
 
   if (!watermarkBase64) return null;
+  // eslint-disable-next-line jsx-a11y/alt-text
   return <Image src={watermarkBase64} style={styles.watermark} />;
 }
 

@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(_request: NextRequest) {
-  // Mock - return empty slots until database is configured
+export async function GET() {
   return NextResponse.json({ slots: [] });
 }

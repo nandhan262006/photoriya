@@ -49,7 +49,7 @@ export function ToggleChip({
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-medium">{label}</span>
         {description && (
-          <span className="truncate text-xs text-muted-foreground">
+          <span className="line-clamp-2 text-xs text-muted-foreground">
             {description}
           </span>
         )}
@@ -57,7 +57,7 @@ export function ToggleChip({
       {selected ? (
         <Check className="size-4 shrink-0 text-primary" />
       ) : priceLabel ? (
-        <span className="shrink-0 text-xs font-medium text-muted-foreground">
+        <span className="shrink-0 whitespace-nowrap text-right text-xs font-medium text-muted-foreground">
           {priceLabel}
         </span>
       ) : null}

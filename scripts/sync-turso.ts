@@ -7,6 +7,8 @@ const turso = createClient({
 });
 
 async function main() {
+  await turso.execute("DROP TABLE IF EXISTS SubEvent");
+  await turso.execute("DROP TABLE IF EXISTS EventTemplate");
   await turso.execute("DROP TABLE IF EXISTS Booking");
   await turso.execute("DROP TABLE IF EXISTS Photographer");
   await turso.execute("DROP TABLE IF EXISTS Service");
@@ -50,6 +52,37 @@ async function main() {
     photographerId INTEGER NOT NULL,
     FOREIGN KEY (serviceId) REFERENCES Service(id),
     FOREIGN KEY (photographerId) REFERENCES Photographer(id)
+  )`);
+
+  await turso.execute(`CREATE TABLE IF NOT EXISTS EventTemplate (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    typeId TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    tagline TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    icon TEXT NOT NULL DEFAULT 'heart',
+    isActive INTEGER NOT NULL DEFAULT 1,
+    defaultMaxReels INTEGER NOT NULL DEFAULT 3,
+    defaultReelMin INTEGER NOT NULL DEFAULT 4000,
+    defaultReelMax INTEGER NOT NULL DEFAULT 8000,
+    coverageOptions TEXT NOT NULL DEFAULT '[]',
+    addOnOptions TEXT NOT NULL DEFAULT '[]',
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  )`);
+
+  await turso.execute(`CREATE TABLE IF NOT EXISTS SubEvent (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subEventId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    defaultSelected INTEGER NOT NULL DEFAULT 0,
+    maxReels INTEGER,
+    sortOrder INTEGER NOT NULL DEFAULT 0,
+    priceOverrides TEXT NOT NULL DEFAULT '{}',
+    templateId INTEGER NOT NULL,
+    FOREIGN KEY (templateId) REFERENCES EventTemplate(id) ON DELETE CASCADE,
+    UNIQUE(subEventId, templateId)
   )`);
 
   await turso.execute(`INSERT INTO Service (name, description, duration, price) VALUES

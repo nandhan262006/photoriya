@@ -10,6 +10,7 @@ import {
   CalendarCheck,
   Camera,
   Users,
+  FileText,
   LogOut,
   Menu,
   X,
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
   { href: "/admin/services", label: "Services", icon: Camera },
   { href: "/admin/photographers", label: "Photographers", icon: Users },
+  { href: "/admin/templates", label: "Templates", icon: FileText },
 ];
 
 export function AdminSidebar() {

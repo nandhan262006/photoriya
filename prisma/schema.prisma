@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Service {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  duration    Int
+  price       String
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bookings    Booking[]
+}
+
+model Photographer {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  bio       String?
+  image     String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+}
+
+model Booking {
+  id              Int       @id @default(autoincrement())
+  clientName      String
+  clientEmail     String
+  clientPhone     String
+  notes           String    @default("")
+  bookingDate     String
+  startTime       String
+  endTime         String
+  totalPrice      String
+  status          String    @default("confirmed")
+  createdAt       DateTime  @default(now())
+  serviceId       Int
+  photographerId  Int
+  service         Service   @relation(fields: [serviceId], references: [id])
+  photographer    Photographer @relation(fields: [photographerId], references: [id])
+}

@@ -8,18 +8,8 @@ import { useEstimator } from "@/lib/estimator/state-provider";
 export function StepNav() {
   const { state, dispatch } = useEstimator();
 
-  const canNavigate = (step: number): boolean => {
-    if (step === 0) return true;
-    if (!state.clientName.trim() || !state.clientPhone.trim()) return false;
-    if (step === 1) return true;
-    if (!state.eventTypeId) return false;
-    if (step === 2) return true;
-    if (state.selectedSubEvents.length === 0) return false;
-    return true;
-  };
-
   const goTo = (step: number) => {
-    if (canNavigate(step)) dispatch({ type: "SET_STEP", step });
+    dispatch({ type: "SET_STEP", step });
   };
 
   return (
@@ -27,20 +17,16 @@ export function StepNav() {
       {STEPS.map((label, i) => {
         const isCurrent = state.step === i;
         const isDone = i < state.step;
-        const canNav = canNavigate(i);
         return (
           <div key={label} className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => goTo(i)}
-              disabled={!canNav}
               className={cn(
                 "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-1.5 py-1 text-xs transition-colors",
                 isCurrent
                   ? "text-foreground"
-                  : canNav
-                    ? "text-muted-foreground hover:text-foreground"
-                    : "text-muted-foreground/40",
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <span

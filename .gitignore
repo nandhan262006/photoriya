@@ -48,3 +48,15 @@ public/gallery/*.webp
 
 # Local booking data
 data/
+
+/src/generated/prisma
+src/generated/
+prisma/dev.db
+prisma/dev.db-journal
+data/
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+dev.db
+*.db-journal

@@ -113,7 +113,7 @@ export function ServicesManager({ services }: ServicesManagerProps) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Price (\u20b9)</Label>
                   <Input
                     id="price"
                     name="price"
@@ -138,9 +138,9 @@ export function ServicesManager({ services }: ServicesManagerProps) {
             key={service.id}
             className="border rounded-lg p-4 flex items-center justify-between"
           >
-            <div className="flex-1">
-              <h3 className="font-semibold">{service.name}</h3>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate font-semibold">{service.name}</h3>
+              <p className="truncate text-sm text-muted-foreground">
                 {service.description}
               </p>
               <div className="flex items-center gap-4 mt-1 text-sm">

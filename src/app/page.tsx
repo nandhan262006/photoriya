@@ -9,7 +9,7 @@ export default function HomePage() {
       <header className="border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center">
           <Link href="/" className="flex items-center">
-            <Image src="/NAVIBAR.png" alt="StudioBook" width={140} height={40} priority />
+            <Image src="/NAVIBAR.png" alt="StudioBook" width={75} height={75} priority />
           </Link>
         </div>
       </header>
@@ -38,14 +38,14 @@ export default function HomePage() {
         </div>
         <ServiceGallery
           images={[
-            { src: "/gallery/gallery1.avif", alt: "Photography work 1" },
-            { src: "/gallery/gallery2.avif", alt: "Photography work 2" },
-            { src: "/gallery/gallery3.avif", alt: "Photography work 3" },
-            { src: "/gallery/gallery4.avif", alt: "Photography work 4" },
-            { src: "/gallery/gallery5.avif", alt: "Photography work 5" },
-            { src: "/gallery/gallery6.avif", alt: "Photography work 6" },
-            { src: "/gallery/gallery7.avif", alt: "Photography work 7" },
-            { src: "/gallery/gallery8.avif", alt: "Photography work 8" },
+            { src: "/gallery/gallery1.webp", alt: "Photography work 1" },
+            { src: "/gallery/gallery2.webp", alt: "Photography work 2" },
+            { src: "/gallery/gallery3.webp", alt: "Photography work 3" },
+            { src: "/gallery/gallery4.webp", alt: "Photography work 4" },
+            { src: "/gallery/gallery5.webp", alt: "Photography work 5" },
+            { src: "/gallery/gallery6.webp", alt: "Photography work 6" },
+            { src: "/gallery/gallery7.webp", alt: "Photography work 7" },
+            { src: "/gallery/gallery8.webp", alt: "Photography work 8" },
           ]}
         />
       </section>

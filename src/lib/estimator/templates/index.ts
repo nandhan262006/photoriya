@@ -11,7 +11,6 @@ import {
   anniversaryTemplate,
   babyShowerTemplate,
   birthdayTemplate,
-  corporateTemplate,
   halfSareeTemplate,
   housewarmingTemplate,
 } from "./other-events";
@@ -24,7 +23,6 @@ const TEMPLATES: EventTemplate[] = [
   babyShowerTemplate,
   housewarmingTemplate,
   anniversaryTemplate,
-  corporateTemplate,
 ];
 
 /** Load all available event templates. */

@@ -112,20 +112,20 @@ export function calculateEstimate(
 
   // Album
   const albumState = state.album;
-  if (albumState.required && albumState.typeId && albumState.sizeId) {
-    const type = template.album.types.find((t) => t.id === albumState.typeId);
+  if (albumState.required && albumState.sizeId) {
     const size = template.album.sizes.find((s) => s.id === albumState.sizeId);
-    if (type && size) {
+    if (size) {
       const pages = albumState.pages;
+      const perPage = 600;
       const perAlbum: PriceRange = {
-        min: (type.basePrice.min + type.perPagePrice.min * pages) * size.multiplier,
-        max: (type.basePrice.max + type.perPagePrice.max * pages) * size.multiplier,
+        min: pages * perPage * size.multiplier,
+        max: pages * perPage * size.multiplier,
       };
       const total = multiply(perAlbum, albumState.count);
       items.push({
         id: "album",
         group: "Albums",
-        label: `${albumState.count} \u00d7 ${type.name}`,
+        label: `${albumState.count} album${albumState.count > 1 ? "s" : ""}`,
         detail: `${size.name}, ${pages} pages each`,
         min: total.min,
         max: total.max,

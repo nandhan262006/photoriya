@@ -13,10 +13,10 @@ import { StepNav } from "./step-nav";
 import { AlbumStep } from "./steps/album-step";
 import { CoverageOnlyStep } from "./steps/coverage-only-step";
 import { AddOnStep } from "./steps/add-on-step";
-import { ReelsStep } from "./steps/reels-step";
 import { DeliverablesStep } from "./steps/deliverables-step";
 import { EstimateStep } from "./steps/estimate-step";
 import { DownloadStep } from "./steps/download-step";
+import { ClientInfoStep } from "./steps/client-info-step";
 import { EventTypeStep } from "./steps/event-type-step";
 import { SubEventsStep } from "./steps/sub-events-step";
 
@@ -28,7 +28,7 @@ export function Estimator({ templates }: { templates: EventTemplate[] }) {
   );
 }
 
-const SKIPPABLE_STEPS = new Set([2, 3, 4, 5]);
+const SKIPPABLE_STEPS = new Set([3, 4, 5]);
 
 function EstimatorShell() {
   const { state, dispatch } = useEstimator();
@@ -37,9 +37,16 @@ function EstimatorShell() {
   const canProceed = (() => {
     switch (state.step) {
       case 0:
-        return !!state.eventTypeId;
+        return state.clientName.trim().length > 0 && state.clientPhone.trim().length > 0;
       case 1:
+        return !!state.eventTypeId;
+      case 2:
         return state.selectedSubEvents.length > 0;
+      case 3: {
+        const firstSubId = state.selectedSubEvents[0];
+        const firstConfig = firstSubId ? state.subEventConfig[firstSubId] : null;
+        return firstConfig ? firstConfig.coverage.length > 0 : false;
+      }
       default:
         return true;
     }
@@ -60,7 +67,7 @@ function EstimatorShell() {
             href="/"
             className="flex items-center text-sm font-medium text-foreground hover:text-muted-foreground"
           >
-            <Image src="/NAVIBAR.png" alt="StudioBook" width={140} height={40} priority />
+            <Image src="/NAVIBAR.png" alt="StudioBook" width={75} height={75} priority />
           </Link>
           <div className="flex flex-col leading-none text-right">
             <span className="text-xs text-muted-foreground">
@@ -75,12 +82,12 @@ function EstimatorShell() {
           <div className="min-w-0 overflow-hidden">
             <StepNav />
             <div className="mt-6">
-              {state.step === 0 && <EventTypeStep />}
-              {state.step === 1 && <SubEventsStep />}
-              {state.step === 2 && <CoverageOnlyStep />}
-              {state.step === 3 && <AlbumStep />}
-              {state.step === 4 && <AddOnStep />}
-              {state.step === 5 && <ReelsStep />}
+              {state.step === 0 && <ClientInfoStep />}
+              {state.step === 1 && <EventTypeStep />}
+              {state.step === 2 && <SubEventsStep />}
+              {state.step === 3 && <CoverageOnlyStep />}
+              {state.step === 4 && <AlbumStep />}
+              {state.step === 5 && <AddOnStep />}
               {state.step === 6 && <DeliverablesStep />}
               {state.step === 7 && <EstimateStep />}
               {state.step === 8 && <DownloadStep />}
@@ -89,7 +96,7 @@ function EstimatorShell() {
             <div className="mt-8 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 {state.step > 0 && (
-                  <Button variant="outline" onClick={prev}>
+                  <Button variant="outline" onClick={prev} className="rounded-[9999px]">
                     <ArrowLeft className="mr-1.5 size-4" />
                     Previous
                   </Button>
@@ -97,13 +104,13 @@ function EstimatorShell() {
               </div>
               <div className="flex items-center gap-2">
                 {SKIPPABLE_STEPS.has(state.step) && state.step < lastStep && (
-                  <Button variant="ghost" onClick={skip}>
+                  <Button variant="ghost" onClick={skip} className="rounded-[9999px]">
                     Skip
                     <SkipForward className="ml-1.5 size-4" />
                   </Button>
                 )}
                 {state.step < lastStep && (
-                  <Button onClick={next} disabled={!canProceed}>
+                  <Button onClick={next} disabled={!canProceed} className="rounded-[9999px]">
                     Next
                     <ArrowRight className="ml-1.5 size-4" />
                   </Button>

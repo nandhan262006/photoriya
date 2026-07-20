@@ -66,16 +66,22 @@ export function EstimatorProvider({
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        dispatch({
-          type: "HYDRATE",
-          state: { ...initialState, ...JSON.parse(raw) } as EstimatorState,
-        });
+        const parsed = JSON.parse(raw);
+        const validTemplate = templates.find((t) => t.id === parsed.eventTypeId);
+        if (validTemplate) {
+          dispatch({
+            type: "HYDRATE",
+            state: { ...initialState, ...parsed } as EstimatorState,
+          });
+        } else {
+          window.localStorage.removeItem(STORAGE_KEY);
+        }
       }
     } catch {
-      /* ignore corrupt persisted state */
+      window.localStorage.removeItem(STORAGE_KEY);
     }
     hydratedRef.current = true;
-  }, []);
+  }, [templates]);
 
   // Persist on change (only after initial rehydration and not on the
   // very first render where state may still be the server initialState).

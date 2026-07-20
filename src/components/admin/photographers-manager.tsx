@@ -118,13 +118,13 @@ export function PhotographersManager({
         {photographers.map((p) => (
           <div key={p.id} className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <div className="flex min-w-0 items-center gap-3 overflow-hidden">
+                <div className="size-10 shrink-0 rounded-full bg-muted flex items-center justify-center">
                   <User className="h-5 w-5" />
                 </div>
-                <div>
-                  <h3 className="font-semibold">{p.name}</h3>
-                  <p className="text-sm text-muted-foreground">{p.email}</p>
+                <div className="min-w-0">
+                  <h3 className="truncate font-semibold">{p.name}</h3>
+                  <p className="truncate text-sm text-muted-foreground">{p.email}</p>
                 </div>
               </div>
               <Button

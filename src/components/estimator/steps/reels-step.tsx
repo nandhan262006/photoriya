@@ -62,7 +62,7 @@ export function ReelsStep() {
                 aria-expanded={isOpen(subId)}
                 className="flex w-full items-center justify-between gap-2 p-3 text-left"
               >
-                <span className="flex min-w-0 items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2 overflow-hidden">
                   <span className="truncate font-medium">{sub.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {summary}
@@ -86,7 +86,7 @@ export function ReelsStep() {
                       {formatRangeCompact(reelPrice(template, subId))} / reel
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 overflow-x-auto pb-1">
                     {Array.from({ length: maxReels + 1 }).map((_, n) => {
                       const selected = cfg.reels === n;
                       return (

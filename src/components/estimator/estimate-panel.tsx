@@ -1,6 +1,6 @@
 "use client";
 
-import { Receipt, Sparkles } from "lucide-react";
+import { ReceiptIndianRupee, Sparkles } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatRange, formatRangeShort } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
@@ -19,7 +19,7 @@ export function EstimatePanel({ compact = false }: { compact?: boolean }) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Receipt className="size-4 text-muted-foreground" />
+          <ReceiptIndianRupee className="size-4 text-muted-foreground" />
           <h2 className="font-heading text-base font-medium">Live estimate</h2>
         </div>
         {estimate.subEventCount > 0 && (

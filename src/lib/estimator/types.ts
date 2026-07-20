@@ -172,6 +172,8 @@ export interface AlbumState {
 }
 
 export interface EstimatorState {
+  clientName: string;
+  clientPhone: string;
   eventTypeId: ID | null;
   /** Selected sub-event ids, order preserved. */
   selectedSubEvents: ID[];

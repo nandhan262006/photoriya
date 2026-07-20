@@ -10,8 +10,11 @@ export function StepNav() {
 
   const canNavigate = (step: number): boolean => {
     if (step === 0) return true;
+    if (!state.clientName.trim() || !state.clientPhone.trim()) return false;
+    if (step === 1) return true;
     if (!state.eventTypeId) return false;
-    if (step >= 2) return state.selectedSubEvents.length > 0;
+    if (step === 2) return true;
+    if (state.selectedSubEvents.length === 0) return false;
     return true;
   };
 

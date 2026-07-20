@@ -139,7 +139,7 @@ export function EstimateStep() {
                   key={rec.ruleId}
                   className="flex items-center justify-between gap-3 rounded-lg border p-3"
                 >
-                  <span className="text-sm text-muted-foreground">
+                  <span className="min-w-0 text-sm text-muted-foreground">
                     {rec.message}
                   </span>
                   <Button

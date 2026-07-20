@@ -31,7 +31,7 @@ export default async function AdminDashboard() {
     { label: "Photographers", value: stats.totalPhotographers, icon: Users },
     {
       label: "Revenue",
-      value: `$${Number(stats.revenue).toLocaleString()}`,
+      value: `\u20b9${Number(stats.revenue).toLocaleString("en-IN")}`,
       icon: DollarSign,
     },
   ];

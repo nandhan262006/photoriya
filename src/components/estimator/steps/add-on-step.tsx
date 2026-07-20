@@ -83,7 +83,7 @@ export function AddOnStep() {
                 aria-expanded={isOpen(subId)}
                 className="flex w-full items-center justify-between gap-2 p-3 text-left"
               >
-                <span className="flex min-w-0 items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2 overflow-hidden">
                   <span className="truncate font-medium">{sub.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {summary}

@@ -1,6 +1,7 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { defaultSubEventsFor } from "@/lib/estimator/state";
 import { useEstimator } from "@/lib/estimator/state-provider";
@@ -8,8 +9,14 @@ import { Icon } from "../icons";
 
 export function EventTypeStep() {
   const { templates, state, dispatch } = useEstimator();
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const selectedId = state.eventTypeId;
 
-  const select = (id: string) => {
+  const toggleExpand = (id: string) => {
+    setExpanded((prev) => (prev === id ? null : id));
+  };
+
+  const confirm = (id: string) => {
     const template = templates.find((t) => t.id === id);
     if (!template) return;
     dispatch({
@@ -18,7 +25,7 @@ export function EventTypeStep() {
       defaultSubEvents: defaultSubEventsFor(template),
       albumBasePages: template.album.basePages,
     });
-    dispatch({ type: "SET_STEP", step: 1 });
+    dispatch({ type: "SET_STEP", step: 2 });
   };
 
   return (
@@ -32,46 +39,71 @@ export function EventTypeStep() {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="flex flex-wrap gap-2">
         {templates.map((t) => {
-          const selected = state.eventTypeId === t.id;
+          const isExpanded = expanded === t.id;
+          const isSelected = selectedId === t.id;
           return (
             <button
               key={t.id}
               type="button"
-              onClick={() => select(t.id)}
-              aria-pressed={selected}
+              onClick={() => toggleExpand(t.id)}
+              aria-expanded={isExpanded}
               className={cn(
-                "relative flex flex-col gap-2 rounded-xl border p-4 text-left transition-all",
-                selected
+                "relative inline-flex items-center gap-2 rounded-[9999px] border px-4 py-2 text-sm transition-all duration-300",
+                isExpanded
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
-                  : "border-border hover:border-foreground/30 hover:shadow-sm",
+                  : isSelected
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-border hover:border-foreground/30 hover:shadow-sm",
               )}
             >
-              {selected && (
-                <span className="absolute right-3 top-3 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Check className="size-3.5" />
-                </span>
-              )}
-              <Icon
-                name={t.icon}
+              <div
                 className={cn(
-                  "size-6",
-                  selected ? "text-primary" : "text-muted-foreground",
+                  "flex size-5 items-center justify-center rounded-full transition-colors duration-300",
+                  isExpanded
+                    ? "bg-primary/15 text-primary"
+                    : isSelected
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground",
                 )}
-              />
-              <span className="font-heading text-base font-medium leading-tight">
-                {t.name}
-              </span>
-              {t.tagline && (
-                <span className="text-xs text-muted-foreground">
-                  {t.tagline}
-                </span>
+              >
+                <Icon name={t.icon} className="size-3" />
+              </div>
+              <span className="font-medium">{t.name}</span>
+              {isSelected && !isExpanded && (
+                <span className="ml-1 size-1.5 rounded-full bg-primary" />
               )}
             </button>
           );
         })}
       </div>
+
+      {expanded && (
+        <div className="rounded-xl border border-border bg-muted/30 p-4">
+          {(() => {
+            const t = templates.find((tpl) => tpl.id === expanded);
+            if (!t) return null;
+            const isCurrentlySelected = selectedId === t.id;
+            return (
+              <>
+                {(t.description || t.tagline) && (
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {t.description || t.tagline}
+                  </p>
+                )}
+                <span
+                  onClick={() => confirm(t.id)}
+                  className="mt-3 inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-primary hover:underline"
+                >
+                  {isCurrentlySelected ? "Change to this" : "Select"}
+                  <ArrowRight className="size-3.5" />
+                </span>
+              </>
+            );
+          })()}
+        </div>
+      )}
     </section>
   );
 }

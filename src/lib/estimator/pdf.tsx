@@ -44,27 +44,27 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 20,
     fontFamily: "Helvetica-Bold",
-    color: "#111111",
+    color: "#15181D",
   },
   subtitle: {
     fontSize: 10,
-    color: "#666666",
+    color: "#6b7280",
     marginTop: 2,
   },
   date: {
     fontSize: 9,
-    color: "#888888",
+    color: "#9ca3af",
     textAlign: "right",
   },
   divider: {
     height: 1,
-    backgroundColor: "#e5e5e5",
+    backgroundColor: "#d1d5db",
     marginVertical: 16,
   },
   sectionTitle: {
     fontSize: 11,
     fontFamily: "Helvetica-Bold",
-    color: "#111111",
+    color: "#15181D",
     marginBottom: 6,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     width: 110,
-    color: "#666666",
+    color: "#6b7280",
   },
   metaValue: {
     flex: 1,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   groupLabel: {
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    color: "#888888",
+    color: "#9ca3af",
     textTransform: "uppercase",
     marginTop: 8,
     marginBottom: 3,
@@ -95,15 +95,15 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   lineLabel: { flex: 1, paddingRight: 12 },
-  lineDetail: { fontSize: 8, color: "#888888" },
+  lineDetail: { fontSize: 8, color: "#9ca3af" },
   linePrice: { textAlign: "right", fontFamily: "Helvetica-Bold" },
   totalBox: {
     marginTop: 16,
     padding: 14,
-    backgroundColor: "#111111",
+    backgroundColor: "#15181D",
     borderRadius: 6,
   },
-  totalLabel: { color: "#cccccc", fontSize: 9 },
+  totalLabel: { color: "#9ca3af", fontSize: 9 },
   totalValue: {
     color: "#ffffff",
     fontSize: 20,
@@ -114,18 +114,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 2,
   },
-  deliverableBullet: { width: 12, color: "#111111" },
+  deliverableBullet: { width: 12, color: "#15181D" },
   deliverableText: { flex: 1 },
   disclaimer: {
     marginTop: 18,
     fontSize: 8,
-    color: "#888888",
+    color: "#9ca3af",
     lineHeight: 1.4,
   },
   footer: {
     marginTop: 14,
     fontSize: 8,
-    color: "#aaaaaa",
+    color: "#9ca3af",
     textAlign: "center",
   },
   watermark: {
@@ -245,6 +245,18 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
             <Text style={styles.subtitle}>Event Cost Estimate</Text>
           </View>
           <Text style={styles.date}>{today}</Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <Text style={styles.sectionTitle}>Client details</Text>
+        <View style={styles.metaRow}>
+          <Text style={styles.metaLabel}>Name</Text>
+          <Text style={styles.metaValue}>{state.clientName}</Text>
+        </View>
+        <View style={styles.metaRow}>
+          <Text style={styles.metaLabel}>Phone</Text>
+          <Text style={styles.metaValue}>{state.clientPhone}</Text>
         </View>
 
         <View style={styles.divider} />

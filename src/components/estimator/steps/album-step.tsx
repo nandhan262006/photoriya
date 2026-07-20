@@ -2,7 +2,7 @@
 
 import { Images } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRangeCompact, formatRangeShort } from "@/lib/estimator/format";
+import { formatRangeShort } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 import { Stepper, ToggleChip } from "../primitives";
 
@@ -18,7 +18,7 @@ export function AlbumStep() {
       <header className="flex flex-col gap-1">
         <h1 className="font-heading text-2xl font-semibold">Albums</h1>
         <p className="text-sm text-muted-foreground">
-          Want printed albums? Configure the type, size and quantity here.
+          Want printed albums? Configure size and quantity at ₹600 per page.
         </p>
       </header>
 
@@ -53,29 +53,6 @@ export function AlbumStep() {
 
       {album.required && (
         <div className="flex flex-col gap-5 rounded-xl border p-4">
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Album type
-            </span>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {template.album.types.map((t) => (
-                <ToggleChip
-                  key={t.id}
-                  label={t.name}
-                  selected={album.typeId === t.id}
-                  priceLabel={`from ${formatRangeCompact(t.basePrice)}`}
-                  onClick={() =>
-                    dispatch({
-                      type: "SET_ALBUM_FIELD",
-                      field: "typeId",
-                      value: t.id,
-                    })
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
           <div className="flex flex-col gap-2">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Album size
@@ -135,7 +112,7 @@ export function AlbumStep() {
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Select an album type and size to see the price.
+              Select an album size to see the price.
             </p>
           )}
         </div>

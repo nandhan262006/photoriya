@@ -51,6 +51,8 @@ export const weddingTemplate: EventTemplate = {
   defaultMaxReels: DEFAULT_MAX_REELS,
   subEvents: [
     { id: "engagement", name: "Engagement" },
+    { id: "bonalu", name: "Bonalu" },
+    { id: "pre_wedding_rituals", name: "Pre Wedding Rituals" },
     { id: "bridal_ceremony", name: "Bridal Ceremony" },
     { id: "groom_ceremony", name: "Groom Ceremony" },
     { id: "pasupu_bride", name: "Pasupu Ceremony (Bride)" },
@@ -60,12 +62,14 @@ export const weddingTemplate: EventTemplate = {
     { id: "haldi_bride", name: "Haldi (Bride)" },
     { id: "haldi_groom", name: "Haldi (Groom)" },
     { id: "haldi_together", name: "Haldi Together" },
+    { id: "baraath", name: "Baraath" },
     {
       id: "wedding",
       name: "Wedding",
       defaultSelected: true,
       coverage: MAIN_DAY_COVERAGE,
     },
+    { id: "pre_reception", name: "Pre Reception" },
     {
       id: "reception",
       name: "Reception",

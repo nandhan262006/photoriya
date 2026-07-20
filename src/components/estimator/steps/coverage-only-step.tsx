@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCoverageOption } from "@/lib/estimator/catalog";
 import { formatRangeCompact } from "@/lib/estimator/format";
+import { maxReelsFor } from "@/lib/estimator/state";
 import { useEstimator } from "@/lib/estimator/state-provider";
 import type { EventTemplate, ID, PriceRange } from "@/lib/estimator/types";
 import { ToggleChip } from "../primitives";
@@ -16,6 +17,11 @@ function coveragePrice(
 ): PriceRange | undefined {
   const sub = template.subEvents.find((s) => s.id === subEventId);
   return sub?.coverage?.[coverageId] ?? template.defaultCoveragePrices[coverageId];
+}
+
+function reelPrice(template: EventTemplate, subEventId: ID): PriceRange {
+  const sub = template.subEvents.find((s) => s.id === subEventId);
+  return sub?.reel ?? template.defaultReelPrice;
 }
 
 export function CoverageOnlyStep() {
@@ -43,8 +49,8 @@ export function CoverageOnlyStep() {
           Coverage selection
         </h1>
         <p className="text-sm text-muted-foreground">
-          For every selected sub-event, choose the photography and videography
-          coverage you need. Prices update instantly.
+          For every selected sub-event, choose the photography, videography
+          coverage and reels you need. Prices update instantly.
         </p>
       </header>
 
@@ -54,10 +60,12 @@ export function CoverageOnlyStep() {
           const cfg = state.subEventConfig[subId];
           if (!sub || !cfg) return null;
 
-          const summary =
-            cfg.coverage.length > 0
-              ? `${cfg.coverage.length} coverage option${cfg.coverage.length > 1 ? "s" : ""}`
-              : "No coverage selected";
+          const parts: string[] = [];
+          if (cfg.coverage.length) parts.push(`${cfg.coverage.length} coverage`);
+          if (cfg.reels > 0) parts.push(`${cfg.reels} reel${cfg.reels > 1 ? "s" : ""}`);
+          const summary = parts.length ? parts.join(" \u00b7 ") : "No coverage selected";
+
+          const maxReels = maxReelsFor(template, subId);
 
           return (
             <div key={subId} className="rounded-xl border">
@@ -67,7 +75,7 @@ export function CoverageOnlyStep() {
                 aria-expanded={isOpen(subId)}
                 className="flex w-full items-center justify-between gap-2 p-3 text-left"
               >
-                <span className="flex min-w-0 items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2 overflow-hidden">
                   <span className="truncate font-medium">{sub.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {summary}
@@ -82,32 +90,75 @@ export function CoverageOnlyStep() {
               </button>
 
               {isOpen(subId) && (
-                <div className="flex flex-col gap-3 border-t p-3">
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {template.coverageOptions.map((id) => {
-                      const opt = getCoverageOption(id);
-                      if (!opt) return null;
-                      const price = coveragePrice(template, subId, id);
-                      return (
-                        <ToggleChip
-                          key={id}
-                          iconKey={opt.icon}
-                          label={opt.label}
-                          description={opt.description}
-                          selected={cfg.coverage.includes(id)}
-                          priceLabel={
-                            price ? formatRangeCompact(price) : undefined
-                          }
-                          onClick={() =>
-                            dispatch({
-                              type: "TOGGLE_COVERAGE",
-                              subEventId: subId,
-                              coverageId: id,
-                            })
-                          }
-                        />
-                      );
-                    })}
+                <div className="flex flex-col gap-4 border-t p-3">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Coverage
+                    </span>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {template.coverageOptions.map((id) => {
+                        const opt = getCoverageOption(id);
+                        if (!opt) return null;
+                        const price = coveragePrice(template, subId, id);
+                        return (
+                          <ToggleChip
+                            key={id}
+                            iconKey={opt.icon}
+                            label={opt.label}
+                            description={opt.description}
+                            selected={cfg.coverage.includes(id)}
+                            priceLabel={
+                              price ? formatRangeCompact(price) : undefined
+                            }
+                            onClick={() =>
+                              dispatch({
+                                type: "TOGGLE_COVERAGE",
+                                subEventId: subId,
+                                coverageId: id,
+                              })
+                            }
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Instagram reels
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatRangeCompact(reelPrice(template, subId))} / reel
+                      </span>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {Array.from({ length: maxReels + 1 }).map((_, n) => {
+                        const selected = cfg.reels === n;
+                        return (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() =>
+                              dispatch({
+                                type: "SET_REELS",
+                                subEventId: subId,
+                                reels: n,
+                              })
+                            }
+                            aria-pressed={selected}
+                            className={cn(
+                              "flex-1 rounded-lg border py-2 text-sm font-medium transition-all",
+                              selected
+                                ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                                : "border-border hover:bg-muted/40",
+                            )}
+                          >
+                            {n === 0 ? "None" : n}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}

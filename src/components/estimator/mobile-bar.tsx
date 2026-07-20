@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, Receipt } from "lucide-react";
+import { X, ReceiptIndianRupee } from "lucide-react";
 import { formatRangeShort } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 import { EstimatePanel } from "./estimate-panel";
@@ -34,21 +34,21 @@ export function MobileEstimateBar() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed top-16 right-4 z-50 flex items-center gap-2 rounded-full border bg-background px-4 py-3 shadow-lg"
+          className="fixed top-16 right-4 z-50 flex flex-col gap-0.5 rounded-xl border bg-background px-3 py-2 shadow-lg"
         >
-          <Receipt className="size-4 text-muted-foreground" />
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-[10px] text-muted-foreground">Estimate</span>
-            {total ? (
-              <span className="text-sm font-semibold tabular-nums">
-                {formatRangeShort(total)}
-              </span>
-            ) : (
-              <span className="text-sm text-muted-foreground">—</span>
-            )}
+          <div className="flex items-center gap-1.5">
+            <ReceiptIndianRupee className="size-3.5 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground leading-none">Estimate</span>
           </div>
+          {total ? (
+            <span className="text-xs font-semibold tabular-nums leading-tight">
+              {formatRangeShort(total)}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground leading-tight">—</span>
+          )}
           {eventName && (
-            <span className="text-[10px] text-muted-foreground max-w-[80px] truncate">
+            <span className="text-[10px] text-muted-foreground max-w-[120px] truncate leading-tight">
               {eventName}
             </span>
           )}
@@ -71,7 +71,7 @@ export function MobileEstimateBar() {
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div className="flex items-center gap-2">
-              <Receipt className="size-4 text-muted-foreground" />
+              <ReceiptIndianRupee className="size-4 text-muted-foreground" />
               <span className="text-sm font-medium">Your Estimate</span>
             </div>
             <button

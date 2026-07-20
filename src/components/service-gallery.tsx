@@ -9,16 +9,13 @@ interface ServiceGalleryProps {
 export function ServiceGallery({ images }: ServiceGalleryProps) {
   if (images.length === 0) return null;
 
-  // Duplicate images for seamless infinite scroll
   const duplicatedImages = [...images, ...images, ...images];
 
   return (
     <div className="overflow-hidden">
       <div
         className="flex gap-4 animate-scroll"
-        style={{
-          width: "max-content",
-        }}
+        style={{ width: "max-content" }}
       >
         {duplicatedImages.map((image, index) => (
           <div
@@ -31,6 +28,7 @@ export function ServiceGallery({ images }: ServiceGalleryProps) {
               fill
               className="object-cover"
               sizes="288px"
+              loading={index === 0 ? "eager" : "lazy"}
             />
           </div>
         ))}

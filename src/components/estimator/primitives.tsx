@@ -30,7 +30,7 @@ export function ToggleChip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left text-sm transition-all",
+        "flex w-full items-start gap-3 rounded-lg border p-2.5 text-left text-sm transition-all",
         selected
           ? "border-primary bg-primary/5 ring-1 ring-primary"
           : "border-border hover:border-foreground/30 hover:bg-muted/40",

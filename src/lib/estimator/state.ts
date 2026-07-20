@@ -6,18 +6,20 @@
 import type { EstimatorState, EventTemplate, ID, SubEventState } from "./types";
 
 export const STEPS = [
+  "Your Details",
   "Event Type",
   "Sub Events",
   "Coverage",
   "Albums",
   "Additional Services",
-  "Instagram Reels",
   "Deliverables",
   "Estimate",
   "Download PDF",
 ] as const;
 
 export const initialState: EstimatorState = {
+  clientName: "",
+  clientPhone: "",
   eventTypeId: null,
   selectedSubEvents: [],
   subEventConfig: {},
@@ -26,6 +28,7 @@ export const initialState: EstimatorState = {
 };
 
 export type EstimatorAction =
+  | { type: "SET_CLIENT_INFO"; field: "clientName" | "clientPhone"; value: string }
   | {
       type: "SET_EVENT_TYPE";
       eventTypeId: ID;
@@ -69,6 +72,13 @@ export function estimatorReducer(
   action: EstimatorAction,
 ): EstimatorState {
   switch (action.type) {
+    case "SET_CLIENT_INFO": {
+      return {
+        ...state,
+        [action.field]: action.value,
+      };
+    }
+
     case "SET_EVENT_TYPE": {
       const config: Record<ID, SubEventState> = {};
       for (const id of action.defaultSubEvents) config[id] = emptySubEvent(id);
@@ -265,6 +275,8 @@ export function sanitizeState(
   };
 
   return {
+    clientName: typeof s.clientName === "string" ? s.clientName : "",
+    clientPhone: typeof s.clientPhone === "string" ? s.clientPhone : "",
     eventTypeId: template.id,
     selectedSubEvents,
     subEventConfig,

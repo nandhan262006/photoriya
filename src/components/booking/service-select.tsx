@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Clock, DollarSign } from "lucide-react";
+import { Camera, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Service {
@@ -50,8 +50,7 @@ export function ServiceSelect({
                     {service.duration} min
                   </span>
                   <span className="flex items-center gap-1 font-semibold">
-                    <DollarSign className="h-4 w-4" />
-                    ${Number(service.price).toFixed(0)}
+                    ₹{Number(service.price).toFixed(0)}
                   </span>
                 </div>
               </div>

@@ -9,7 +9,7 @@ export default function HomePage() {
       <header className="border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center">
           <Link href="/" className="flex items-center">
-            <Image src="/NAVIBAR.png" alt="StudioBook" width={75} height={75} priority />
+            <Image src="/NAVIBAR.png" alt="Photriya Studios" width={75} height={75} priority />
           </Link>
         </div>
       </header>

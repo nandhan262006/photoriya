@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
         <div className="border rounded-lg bg-background p-8">
           <div className="flex items-center gap-2 justify-center mb-6">
             <Camera className="h-6 w-6" />
-            <span className="text-xl font-semibold">StudioBook Admin</span>
+            <span className="text-xl font-semibold">Photriya Studios Admin</span>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="admin@studiobook.com"
+                placeholder="admin@photriya.com"
                 required
               />
             </div>

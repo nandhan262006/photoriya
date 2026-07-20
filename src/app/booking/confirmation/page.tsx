@@ -9,7 +9,7 @@ export default function ConfirmationPage() {
           Your photography session has been booked successfully.
         </p>
         <p className="text-sm text-muted-foreground mb-8">
-          You will receive a confirmation email shortly with all the details.
+          Our team will reach out to you shortly to confirm the details.
         </p>
         <div className="flex gap-4 justify-center">
           <Link

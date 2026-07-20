@@ -149,7 +149,7 @@ export function ServicesManager({ services }: ServicesManagerProps) {
                   {service.duration} min
                 </span>
                 <span className="font-medium">
-                  ${Number(service.price).toFixed(0)}
+                  ₹{Number(service.price).toFixed(0)}
                 </span>
               </div>
             </div>

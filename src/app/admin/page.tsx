@@ -74,7 +74,7 @@ export default async function AdminDashboard() {
             {stats.recentBookings.length === 0 && (
               <tr>
                 <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                  No bookings yet. Connect a database to see booking data.
+                  No bookings yet.
                 </td>
               </tr>
             )}

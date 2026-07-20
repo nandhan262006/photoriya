@@ -92,7 +92,7 @@ export function BookingsTable({ bookings }: BookingsTableProps) {
                 </span>
               </td>
               <td className="p-3 text-sm font-medium">
-                ${Number(b.totalPrice).toFixed(0)}
+                ₹{Number(b.totalPrice).toFixed(0)}
               </td>
               <td className="p-3">
                 <span

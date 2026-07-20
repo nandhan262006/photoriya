@@ -16,7 +16,7 @@ export default async function BookingPage() {
       <header className="border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-2">
           <Link href="/" className="flex items-center">
-            <Image src="/NAVIBAR.png" alt="StudioBook" width={75} height={75} priority />
+            <Image src="/NAVIBAR.png" alt="Photriya Studios" width={75} height={75} priority />
           </Link>
           <span className="text-muted-foreground">/</span>
           <span className="text-muted-foreground">Book a Session</span>

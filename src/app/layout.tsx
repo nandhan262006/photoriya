@@ -17,13 +17,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "Photriya Studios - Photography Booking",
   description: "Photriya Studios is a premier photography studio in Hyderabad, Telangana with 664+ Google reviews. Book professional photography and videography sessions online.",
+  metadataBase: new URL("https://photriyastudios.com"),
   openGraph: {
 title: "Photriya Studios - Photography Booking",
     description: "Photriya Studios is a premier photography studio in Hyderabad, Telangana with 664+ Google reviews. Book professional photography and videography sessions online.",
     siteName: "Photriya Studios",
     locale: "en_IN",
     type: "website",
+    images: [{ url: "/NAVIBAR.png", width: 386, height: 386 }],
   },
+  icons: [{ rel: "icon", url: "/NAVIBAR.png" }],
 };
 
 export default function RootLayout({

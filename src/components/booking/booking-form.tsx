@@ -79,7 +79,7 @@ export function BookingForm({
                 id="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 (555) 000-0000"
+                placeholder="+91 98765 43210"
               />
             </div>
             <div>
@@ -133,7 +133,7 @@ export function BookingForm({
             <div className="pt-3 border-t flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Total</span>
               <span className="text-2xl font-bold">
-                ${Number(selectedService?.price || 0).toFixed(0)}
+                ₹{Number(selectedService?.price || 0).toFixed(0)}
               </span>
             </div>
           </div>

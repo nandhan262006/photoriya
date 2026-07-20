@@ -17,7 +17,7 @@ export async function getBookedSlots(_photographerId: number, _date: string) {
 }
 
 export async function createBooking(_formData: FormData) {
-  return { error: "Booking system not configured yet" };
+  return { error: "Online booking is currently unavailable. Please contact us directly." };
 }
 
 export async function getAdminBookings() {

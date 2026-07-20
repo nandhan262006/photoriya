@@ -67,7 +67,7 @@ function EstimatorShell() {
             href="/"
             className="flex items-center text-sm font-medium text-foreground hover:text-muted-foreground"
           >
-            <Image src="/NAVIBAR.png" alt="StudioBook" width={75} height={75} priority />
+            <Image src="/NAVIBAR.png" alt="Photriya Studios" width={75} height={75} priority />
           </Link>
           <div className="flex flex-col leading-none text-right">
             <span className="text-xs text-muted-foreground">

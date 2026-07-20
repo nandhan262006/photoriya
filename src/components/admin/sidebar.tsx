@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   CalendarCheck,
-  Camera,
-  Users,
   FileText,
   LogOut,
   Menu,
@@ -20,8 +18,6 @@ import { signOut } from "next-auth/react";
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
-  { href: "/admin/services", label: "Services", icon: Camera },
-  { href: "/admin/photographers", label: "Photographers", icon: Users },
   { href: "/admin/templates", label: "Templates", icon: FileText },
 ];
 

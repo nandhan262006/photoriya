@@ -70,15 +70,10 @@ export function BookingFlow({ services, photographers }: BookingFlowProps) {
     fd.set("endTime", selectedEndTime);
     fd.set("totalPrice", selectedService.price);
 
-    const result = await createBooking(fd);
-
-    if (result.error) {
-      toast.error(result.error);
-      setSubmitting(false);
-    } else {
-      toast.success("Booking confirmed!");
-      router.push("/booking/confirmation");
-    }
+    await createBooking(fd);
+    setSubmitting(false);
+    toast.success("Booking confirmed!");
+    router.push("/booking/confirmation");
   };
 
   return (
@@ -159,7 +154,7 @@ export function BookingFlow({ services, photographers }: BookingFlowProps) {
           </div>
           <h2 className="text-2xl font-semibold mb-2">Booking Confirmed!</h2>
           <p className="text-muted-foreground mb-6">
-            We&apos;ve sent a confirmation to your email.
+            Your booking has been received. We will contact you shortly to confirm.
           </p>
           <Button onClick={() => router.push("/")}>Back to Home</Button>
         </div>

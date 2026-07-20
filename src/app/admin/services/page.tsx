@@ -1,19 +1,10 @@
 import { ServicesManager } from "@/components/admin/services-manager";
+import { getServices } from "@/lib/booking/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminServicesPage() {
-  const services: Array<{
-    id: number;
-    name: string;
-    description: string;
-    duration: number;
-    price: string;
-    image: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }> = [];
+  const services = await getServices();
 
   return (
     <div>

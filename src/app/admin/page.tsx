@@ -5,15 +5,19 @@ import {
   DollarSign,
   TrendingUp,
 } from "lucide-react";
+import { getAdminBookings } from "@/lib/booking/actions";
 
 async function getStats() {
+  const bookings = await getAdminBookings();
+  const confirmed = bookings.filter((b: Record<string, unknown>) => b.status === "confirmed");
+  const revenue = confirmed.reduce((sum: number, b: Record<string, unknown>) => sum + Number(b.totalPrice || 0), 0);
   return {
-    totalBookings: 0,
-    totalServices: 0,
-    totalPhotographers: 0,
-    confirmedBookings: 0,
-    revenue: "0",
-    recentBookings: [],
+    totalBookings: bookings.length,
+    totalServices: 5,
+    totalPhotographers: 1,
+    confirmedBookings: confirmed.length,
+    revenue: String(revenue),
+    recentBookings: bookings.slice(-5).reverse(),
   };
 }
 

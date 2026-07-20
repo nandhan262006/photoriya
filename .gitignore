@@ -45,3 +45,6 @@ public/photriya-estimate*.pdf
 
 # WebP converted files
 public/gallery/*.webp
+
+# Local booking data
+data/

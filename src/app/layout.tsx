@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "StudioBook - Photography Booking",
-  description: "Book your photography session online",
+  description: "Photriya Studios is a premier photography studio in Hyderabad, Telangana with 664+ Google reviews. Book professional photography and videography sessions online.",
 };
 
 export default function RootLayout({

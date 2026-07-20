@@ -5,7 +5,7 @@ import { loadTemplates } from "@/lib/estimator/templates";
 export const metadata: Metadata = {
   title: "Event Cost Estimator | Photriya Studios",
   description:
-    "Build your photography and videography package and get an instant rough estimate.",
+    "Build your photography and videography package at Photriya Studios, Hyderabad and get an instant rough estimate.",
 };
 
 export default async function EstimatorPage() {

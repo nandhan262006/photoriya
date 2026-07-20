@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   title: "Event Cost Estimator | Photriya Studios",
   description:
     "Build your photography and videography package at Photriya Studios, Hyderabad and get an instant rough estimate.",
+  openGraph: {
+    title: "Event Cost Estimator | Photriya Studios",
+    description:
+      "Build your photography and videography package at Photriya Studios, Hyderabad and get an instant rough estimate.",
+    siteName: "Photriya Studios",
+    locale: "en_IN",
+    type: "website",
+  },
 };
 
 export default async function EstimatorPage() {

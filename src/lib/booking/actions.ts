@@ -2,12 +2,19 @@
 
 import { prisma } from "@/lib/prisma";
 
+function getDb() {
+  if (!prisma) throw new Error("Database not configured");
+  return prisma;
+}
+
 export async function getServices() {
-  return prisma.service.findMany({ where: { isActive: true } });
+  const db = getDb();
+  return db.service.findMany({ where: { isActive: true } });
 }
 
 export async function getPhotographers() {
-  const photographers = await prisma.photographer.findMany({ where: { isActive: true } });
+  const db = getDb();
+  const photographers = await db.photographer.findMany({ where: { isActive: true } });
   return photographers.map((p) => ({ id: p.id, name: p.name, email: p.email, phone: p.phone, bio: p.bio, image: p.image, timeSlots: [] }));
 }
 
@@ -20,7 +27,8 @@ export async function getBookedSlots() {
 }
 
 export async function createBooking(formData: FormData) {
-  await prisma.booking.create({
+  const db = getDb();
+  await db.booking.create({
     data: {
       clientName: (formData.get("clientName") as string) || "",
       clientEmail: (formData.get("clientEmail") as string) || "",
@@ -35,19 +43,20 @@ export async function createBooking(formData: FormData) {
       photographerId: Number(formData.get("photographerId")),
     },
   });
-
   return { success: true };
 }
 
 export async function getAdminBookings() {
-  return prisma.booking.findMany({
+  const db = getDb();
+  return db.booking.findMany({
     include: { service: true, photographer: true },
     orderBy: { createdAt: "desc" },
   });
 }
 
 export async function updateBookingStatus(bookingId: number, status: string) {
-  await prisma.booking.update({
+  const db = getDb();
+  await db.booking.update({
     where: { id: bookingId },
     data: { status },
   });
@@ -55,6 +64,7 @@ export async function updateBookingStatus(bookingId: number, status: string) {
 }
 
 export async function deleteBooking(bookingId: number) {
-  await prisma.booking.delete({ where: { id: bookingId } });
+  const db = getDb();
+  await db.booking.delete({ where: { id: bookingId } });
   return { success: true };
 }

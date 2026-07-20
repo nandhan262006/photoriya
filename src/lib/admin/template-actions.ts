@@ -3,15 +3,22 @@
 import { prisma } from "@/lib/prisma";
 import { invalidateCache } from "@/lib/estimator/templates";
 
+function getDb() {
+  if (!prisma) throw new Error("Database not configured");
+  return prisma;
+}
+
 export async function getTemplates() {
-  return prisma.eventTemplate.findMany({
+  const db = getDb();
+  return db.eventTemplate.findMany({
     include: { subEvents: { orderBy: { sortOrder: "asc" } } },
     orderBy: { name: "asc" },
   });
 }
 
 export async function getTemplate(id: number) {
-  return prisma.eventTemplate.findUnique({
+  const db = getDb();
+  return db.eventTemplate.findUnique({
     where: { id },
     include: { subEvents: { orderBy: { sortOrder: "asc" } } },
   });
@@ -31,9 +38,10 @@ export async function upsertTemplate(data: {
   coverageOptions: string[];
   addOnOptions: string[];
 }) {
+  const db = getDb();
   let result;
   if (data.id) {
-    result = await prisma.eventTemplate.update({
+    result = await db.eventTemplate.update({
       where: { id: data.id },
       data: {
         typeId: data.typeId,
@@ -50,7 +58,7 @@ export async function upsertTemplate(data: {
       },
     });
   } else {
-    result = await prisma.eventTemplate.create({
+    result = await db.eventTemplate.create({
       data: {
         typeId: data.typeId,
         name: data.name,
@@ -81,6 +89,7 @@ export async function upsertSubEvent(data: {
   priceOverrides: Record<string, unknown>;
   templateId: number;
 }) {
+  const db = getDb();
   const payload = {
     subEventId: data.subEventId,
     name: data.name,
@@ -93,22 +102,24 @@ export async function upsertSubEvent(data: {
   };
   let result;
   if (data.id) {
-    result = await prisma.subEvent.update({ where: { id: data.id }, data: payload });
+    result = await db.subEvent.update({ where: { id: data.id }, data: payload });
   } else {
-    result = await prisma.subEvent.create({ data: payload });
+    result = await db.subEvent.create({ data: payload });
   }
   invalidateCache();
   return result;
 }
 
 export async function deleteSubEvent(id: number) {
-  const result = await prisma.subEvent.delete({ where: { id } });
+  const db = getDb();
+  const result = await db.subEvent.delete({ where: { id } });
   invalidateCache();
   return result;
 }
 
 export async function deleteTemplate(id: number) {
-  const result = await prisma.eventTemplate.delete({ where: { id } });
+  const db = getDb();
+  const result = await db.eventTemplate.delete({ where: { id } });
   invalidateCache();
   return result;
 }

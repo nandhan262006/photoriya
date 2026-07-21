@@ -60,14 +60,13 @@ export async function upsertTemplate(data: {
     addOnOptions: JSON.stringify(data.addOnOptions),
     defaultPrices: data.defaultPrices ?? "{}",
   };
-  let result;
   if (data.id) {
-    result = await db.update(eventTemplate).set(payload).where(eq(eventTemplate.id, data.id));
+    await db.update(eventTemplate).set(payload).where(eq(eventTemplate.id, data.id));
   } else {
-    result = await db.insert(eventTemplate).values(payload);
+    await db.insert(eventTemplate).values(payload);
   }
   revalidatePath("/admin/templates");
-  return result;
+  return { success: true };
 }
 
 export async function upsertSubEvent(data: {
@@ -93,28 +92,27 @@ export async function upsertSubEvent(data: {
     priceOverrides: JSON.stringify(data.priceOverrides),
     templateId: data.templateId,
   };
-  let result;
   if (data.id) {
-    result = await db.update(subEvent).set(payload).where(eq(subEvent.id, data.id));
+    await db.update(subEvent).set(payload).where(eq(subEvent.id, data.id));
   } else {
-    result = await db.insert(subEvent).values(payload);
+    await db.insert(subEvent).values(payload);
   }
   revalidatePath("/admin/templates");
-  return result;
+  return { success: true };
 }
 
 export async function deleteSubEvent(id: number) {
   await requireAdmin();
   const db = getDb();
-  const result = await db.delete(subEvent).where(eq(subEvent.id, id));
+  await db.delete(subEvent).where(eq(subEvent.id, id));
   revalidatePath("/admin/templates");
-  return result;
+  return { success: true };
 }
 
 export async function deleteTemplate(id: number) {
   await requireAdmin();
   const db = getDb();
-  const result = await db.delete(eventTemplate).where(eq(eventTemplate.id, id));
+  await db.delete(eventTemplate).where(eq(eventTemplate.id, id));
   revalidatePath("/admin/templates");
-  return result;
+  return { success: true };
 }

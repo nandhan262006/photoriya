@@ -21,13 +21,17 @@ export function DownloadStep() {
     setDownloading(true);
     try {
       if (state.clientName && state.clientPhone) {
-        saveEstimateLead({
-          clientName: state.clientName,
-          clientPhone: state.clientPhone,
-          eventType: state.eventTypeId ?? "",
-          eventName: template?.name ?? "",
-          estimateData: JSON.stringify(state),
-        }).catch(() => {});
+        try {
+          await saveEstimateLead({
+            clientName: state.clientName,
+            clientPhone: state.clientPhone,
+            eventType: state.eventTypeId ?? "",
+            eventName: template?.name ?? "",
+            estimateData: JSON.stringify(state),
+          });
+        } catch {
+          console.warn("Failed to save estimate lead");
+        }
       }
       await downloadEstimatePdf(state);
       toast.success("Your estimate PDF is downloading.");

@@ -5,20 +5,19 @@ import {
 } from "lucide-react";
 import { getAdminBookings } from "@/lib/booking/actions";
 
-async function getStats() {
+type BookingRow = Awaited<ReturnType<typeof getAdminBookings>>[number];
+
+export default async function AdminDashboard() {
   const bookings = await getAdminBookings();
-  const confirmed = bookings.filter((b: Record<string, unknown>) => b.status === "confirmed");
-  const revenue = confirmed.reduce((sum: number, b: Record<string, unknown>) => sum + Number(b.totalPrice || 0), 0);
-  return {
+  const confirmed = bookings.filter((b) => b.status === "confirmed");
+  const revenue = confirmed.reduce((sum, b) => sum + Number(b.totalPrice || 0), 0);
+
+  const stats = {
     totalBookings: bookings.length,
     confirmedBookings: confirmed.length,
     revenue: String(revenue),
     recentBookings: bookings.slice(0, 5),
   };
-}
-
-export default async function AdminDashboard() {
-  const stats = await getStats();
 
   const cards = [
     {
@@ -76,13 +75,13 @@ export default async function AdminDashboard() {
                 </td>
               </tr>
             ) : (
-              stats.recentBookings.map((b: Record<string, unknown>) => (
-                <tr key={b.id as string} className="border-b">
-                  <td className="p-3 text-sm">{b.clientName as string}</td>
-                  <td className="p-3 text-sm">{(b.service as Record<string, unknown>)?.name as string}</td>
-                  <td className="p-3 text-sm">{(b.photographer as Record<string, unknown>)?.name as string}</td>
-                  <td className="p-3 text-sm">{b.bookingDate as string}</td>
-                  <td className="p-3 text-sm">{b.status as string}</td>
+              stats.recentBookings.map((b: BookingRow) => (
+                <tr key={b.id} className="border-b">
+                  <td className="p-3 text-sm">{b.clientName}</td>
+                  <td className="p-3 text-sm">{b.service.name}</td>
+                  <td className="p-3 text-sm">{b.photographer.name}</td>
+                  <td className="p-3 text-sm">{b.bookingDate}</td>
+                  <td className="p-3 text-sm">{b.status}</td>
                   <td className="p-3 text-sm">₹{Number(b.totalPrice || 0).toLocaleString("en-IN")}</td>
                 </tr>
               ))

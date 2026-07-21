@@ -1,6 +1,15 @@
 import type { EventTemplate, ID, PriceRange } from "../types";
 import { prisma } from "@/lib/prisma";
 import { deliverableRulesFor, commonRecommendations } from "./shared";
+import { weddingTemplate } from "./wedding";
+import {
+  birthdayTemplate,
+  halfSareeTemplate,
+  babyShowerTemplate,
+  housewarmingTemplate,
+  anniversaryTemplate,
+  corporateTemplate,
+} from "./other-events";
 
 const ALBUM_DEFAULTS = {
   types: [
@@ -102,8 +111,20 @@ function safeJson<T>(val: string): T | null {
   try { return JSON.parse(val) as T; } catch { return null; }
 }
 
+const HARDCODED_TEMPLATES: EventTemplate[] = [
+  weddingTemplate,
+  birthdayTemplate,
+  halfSareeTemplate,
+  babyShowerTemplate,
+  housewarmingTemplate,
+  anniversaryTemplate,
+  corporateTemplate,
+];
+
 export async function loadTemplates(): Promise<EventTemplate[]> {
-  return loadDbTemplates();
+  const dbTemplates = await loadDbTemplates();
+  if (dbTemplates.length > 0) return dbTemplates;
+  return HARDCODED_TEMPLATES;
 }
 
 export async function loadTemplate(id: ID | null): Promise<EventTemplate | null> {

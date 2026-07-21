@@ -7,32 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatINR } from "@/lib/estimator/format";
 import { downloadEstimatePdf } from "@/lib/estimator/pdf-client";
-import { saveEstimateLead } from "@/lib/estimator/lead-actions";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
 const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
 
 export function DownloadStep() {
-  const { state, estimate, deliverables, dispatch, template } = useEstimator();
+  const { state, estimate, deliverables, dispatch } = useEstimator();
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
     if (estimate.isEmpty) return;
     setDownloading(true);
     try {
-      if (state.clientName && state.clientPhone) {
-        try {
-          await saveEstimateLead({
-            clientName: state.clientName,
-            clientPhone: state.clientPhone,
-            eventType: state.eventTypeId ?? "",
-            eventName: template?.name ?? "",
-            estimateData: JSON.stringify(state),
-          });
-        } catch {
-          console.warn("Failed to save estimate lead");
-        }
-      }
       await downloadEstimatePdf(state);
       toast.success("Your estimate PDF is downloading.");
     } catch {

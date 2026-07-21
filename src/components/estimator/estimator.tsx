@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, SkipForward } from "lucide-react";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { STEPS } from "@/lib/estimator/state";
 import { EstimatorProvider, useEstimator } from "@/lib/estimator/state-provider";
 import type { EventTemplate } from "@/lib/estimator/types";
+import { saveEstimateLead } from "@/lib/estimator/lead-actions";
 import { EstimatePanel } from "./estimate-panel";
 import { MobileEstimateBar } from "./mobile-bar";
 import { StepNav } from "./step-nav";
@@ -31,8 +33,26 @@ export function Estimator({ templates }: { templates: EventTemplate[] }) {
 const SKIPPABLE_STEPS = new Set([3, 4, 5]);
 
 function EstimatorShell() {
-  const { state, dispatch } = useEstimator();
+  const { state, dispatch, estimate, deliverables, template } = useEstimator();
   const lastStep = STEPS.length - 1;
+  const savedRef = useRef(false);
+
+  useEffect(() => {
+    if (state.step >= 7 && state.clientName && state.clientPhone && state.eventTypeId) {
+      if (savedRef.current) return;
+      savedRef.current = true;
+      saveEstimateLead({
+        clientName: state.clientName,
+        clientPhone: state.clientPhone,
+        eventType: state.eventTypeId,
+        eventName: template?.name ?? "",
+        estimateData: JSON.stringify({ state, estimate, deliverables }),
+      }).catch(() => {
+        console.warn("Failed to auto-save estimate lead");
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.step]);
 
   const canProceed = (() => {
     switch (state.step) {

@@ -1,6 +1,7 @@
 import { getEstimateLeads } from "@/lib/estimator/lead-actions";
 import { MarkCompleteButton } from "@/components/admin/mark-complete-button";
 import { DeleteEstimateButton } from "@/components/admin/delete-estimate-button";
+import { EstimateDetail } from "@/components/admin/estimate-detail";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function AdminEstimatesPage() {
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Client</th>
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Phone</th>
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Event</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Estimate</th>
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Date</th>
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Status</th>
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium" />
@@ -29,7 +31,7 @@ export default async function AdminEstimatesPage() {
           <tbody>
             {leads.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                <td colSpan={7} className="p-8 text-center text-muted-foreground">
                   No estimates yet. Clients will appear here when they use the estimator.
                 </td>
               </tr>
@@ -39,6 +41,9 @@ export default async function AdminEstimatesPage() {
                 <td className="p-3 font-medium text-sm">{lead.clientName}</td>
                 <td className="p-3 text-sm">{lead.clientPhone}</td>
                 <td className="p-3 text-sm">{lead.eventName || lead.eventType}</td>
+                <td className="p-3 text-sm">
+                  <EstimateDetail estimateData={lead.estimateData} />
+                </td>
                 <td className="p-3 text-sm text-muted-foreground">
                   {new Date(lead.createdAt).toLocaleDateString("en-IN", {
                     day: "numeric", month: "short", year: "numeric",

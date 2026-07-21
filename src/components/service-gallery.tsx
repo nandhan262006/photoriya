@@ -28,7 +28,8 @@ export function ServiceGallery({ images }: ServiceGalleryProps) {
               fill
               className="object-cover"
               sizes="288px"
-              loading={index === 0 ? "eager" : "lazy"}
+              priority={index === 0}
+              loading={index === 0 ? undefined : "lazy"}
             />
           </div>
         ))}

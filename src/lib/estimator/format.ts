@@ -18,7 +18,12 @@ export function formatINRCompact(amount: number): string {
   const n = Math.round(amount);
   if (n < 1000) return `\u20b9${n}`;
   if (n < 100000) return `\u20b9${Math.round(n / 1000)}k`;
-  const lakhs = n / 100000;
-  const text = lakhs.toFixed(1).replace(/\.0$/, "");
-  return `\u20b9${text}L`;
+  if (n < 10000000) {
+    const lakhs = n / 100000;
+    const text = lakhs.toFixed(1).replace(/\.0$/, "");
+    return `\u20b9${text}L`;
+  }
+  const crores = n / 10000000;
+  const text = crores.toFixed(1).replace(/\.0$/, "");
+  return `\u20b9${text}Cr`;
 }

@@ -1,30 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireAdmin, getDb } from "@/lib/db-utils";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
-}
-
-function getDb() {
-  if (!prisma) throw new Error("Database not configured");
-  return prisma;
-}
+const VALID_STATUSES = ["confirmed", "pending", "cancelled"];
 
 export async function getAdminBookings() {
   await requireAdmin();
   const db = getDb();
-  return db.booking.findMany({
-    include: { service: true, photographer: true },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    return await db.booking.findMany({
+      include: { service: true, photographer: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function updateBookingStatus(bookingId: number, status: string) {
   await requireAdmin();
+  if (!VALID_STATUSES.includes(status)) throw new Error("Invalid status");
   const db = getDb();
   await db.booking.update({
     where: { id: bookingId },

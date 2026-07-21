@@ -1,17 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
-}
-
-function getDb() {
-  if (!prisma) throw new Error("Database not configured");
-  return prisma;
-}
+import { requireAdmin, getDb } from "@/lib/db-utils";
 
 export async function saveEstimateLead(data: {
   clientName: string;

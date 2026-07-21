@@ -182,7 +182,8 @@ export function estimatorReducer(
       if (action.field === "typeId" || action.field === "sizeId") {
         album[action.field] = (action.value as string) || null;
       } else {
-        album[action.field] = Number(action.value);
+        const n = Number(action.value);
+        album[action.field] = Number.isFinite(n) ? n : album[action.field];
       }
       return { ...state, album };
     }
@@ -276,7 +277,7 @@ export function sanitizeState(
 
   return {
     clientName: typeof s.clientName === "string" ? s.clientName : "",
-    clientPhone: typeof s.clientPhone === "string" ? s.clientPhone : "",
+    clientPhone: typeof s.clientPhone === "string" ? s.clientPhone.replace(/\D/g, "").slice(0, 10) : "",
     eventTypeId: template.id,
     selectedSubEvents,
     subEventConfig,

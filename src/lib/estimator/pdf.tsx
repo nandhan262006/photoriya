@@ -25,10 +25,19 @@ import type {
 } from "./types";
 
 // Load watermark image as base64
-function getWatermarkBase64(): string {
-  const imagePath = path.join(process.cwd(), "public", "NAVIBAR.png");
-  const imageBuffer = fs.readFileSync(imagePath);
-  return `data:image/png;base64,${imageBuffer.toString("base64")}`;
+let watermarkBase64Cache: string | null | undefined;
+
+function getWatermarkBase64(): string | null {
+  if (watermarkBase64Cache !== undefined) return watermarkBase64Cache;
+  try {
+    const imagePath = path.join(process.cwd(), "public", "NAVIBAR.png");
+    const imageBuffer = fs.readFileSync(imagePath);
+    watermarkBase64Cache = `data:image/png;base64,${imageBuffer.toString("base64")}`;
+    return watermarkBase64Cache;
+  } catch {
+    watermarkBase64Cache = null;
+    return null;
+  }
 }
 
 const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
@@ -146,12 +155,7 @@ interface PdfProps {
 }
 
 function Watermark() {
-  let watermarkBase64: string | null = null;
-  try {
-    watermarkBase64 = getWatermarkBase64();
-  } catch {
-    // Watermark image not found
-  }
+  const watermarkBase64 = getWatermarkBase64();
 
   if (!watermarkBase64) return null;
   // eslint-disable-next-line jsx-a11y/alt-text

@@ -1,6 +1,12 @@
 import type { EventTemplate, ID, PriceRange } from "../types";
 import { prisma } from "@/lib/prisma";
-import { deliverableRulesFor, commonRecommendations } from "./shared";
+import {
+  deliverableRulesFor,
+  commonRecommendations,
+  ALBUM_DEFAULTS,
+  DEFAULT_COVERAGE_PRICES,
+  DEFAULT_ADDON_PRICES,
+} from "./shared";
 import { weddingTemplate } from "./wedding";
 import {
   birthdayTemplate,
@@ -10,39 +16,6 @@ import {
   anniversaryTemplate,
   corporateTemplate,
 } from "./other-events";
-
-const ALBUM_DEFAULTS = {
-  types: [
-    { id: "magazine", name: "Magazine Album", basePrice: { value: 18000 }, perPagePrice: { value: 150 } },
-    { id: "premium", name: "Premium Photographic", basePrice: { value: 22000 }, perPagePrice: { value: 200 } },
-    { id: "layflat", name: "Layflat Album", basePrice: { value: 32000 }, perPagePrice: { value: 400 } },
-    { id: "coffee_table", name: "Coffee Table Album", basePrice: { value: 45000 }, perPagePrice: { value: 550 } },
-  ],
-  sizes: [
-    { id: "12x36", name: '12" × 36"', multiplier: 1.0 },
-    { id: "15x45", name: '15" × 45"', multiplier: 1.3 },
-    { id: "20x60", name: '20" × 60"', multiplier: 1.8 },
-    { id: "24x72", name: '24" × 72"', multiplier: 2.4 },
-  ],
-  basePages: 30,
-  maxPages: 120,
-  maxAlbums: 10,
-};
-
-const DEFAULT_COVERAGE_PRICES: Record<ID, PriceRange> = {
-  traditional_photography: { value: 12000 },
-  traditional_videography: { value: 16000 },
-  candid_photography: { value: 35000 },
-  cinematic_videography: { value: 45000 },
-  drone: { value: 20000 },
-};
-
-const DEFAULT_ADDON_PRICES: Record<ID, PriceRange> = {
-  led_screen: { value: 25000 },
-  live_streaming: { value: 15000 },
-  ai_gallery: { value: 25000 },
-  instant_teaser: { value: 20000 },
-};
 
 async function loadDbTemplates(): Promise<EventTemplate[]> {
   try {

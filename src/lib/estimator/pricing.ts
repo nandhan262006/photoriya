@@ -5,6 +5,7 @@ import type {
   LineItem,
   PriceRange,
 } from "./types";
+import { getCoverageOption, getAddOnOption } from "./catalog";
 
 function coveragePrice(template: EventTemplate, subEventId: ID, coverageId: ID): PriceRange | undefined {
   const sub = template.subEvents.find((s) => s.id === subEventId);
@@ -92,19 +93,19 @@ export function calculateEstimate(
 
   // Album
   const albumState = state.album;
-  if (albumState.required && albumState.sizeId) {
+  if (albumState.required && albumState.sizeId && albumState.typeId) {
     const size = template.album.sizes.find((s) => s.id === albumState.sizeId);
-    if (size) {
+    const albumType = template.album.types.find((t) => t.id === albumState.typeId);
+    if (size && albumType) {
       const pages = albumState.pages;
-      const albumType = template.album.types.find((t) => t.id === albumState.typeId);
-      const perPagePrice = albumType?.perPagePrice ?? { value: 600 };
-      const perAlbum = pages * perPagePrice.value * size.multiplier;
+      const extraPages = Math.max(0, pages - template.album.basePages);
+      const perAlbum = (albumType.basePrice.value + extraPages * albumType.perPagePrice.value) * size.multiplier;
       const albumTotal = perAlbum * albumState.count;
       items.push({
         id: "album",
         group: "Albums",
         label: `${albumState.count} album${albumState.count > 1 ? "s" : ""}`,
-        detail: `${size.name}, ${pages} pages each`,
+        detail: `${albumType.name}, ${size.name}, ${pages} pages each`,
         value: albumTotal,
       });
       total += albumTotal;
@@ -121,25 +122,10 @@ export function calculateEstimate(
   };
 }
 
-const COVERAGE_LABELS: Record<ID, string> = {
-  traditional_photography: "Traditional Photography",
-  traditional_videography: "Traditional Videography",
-  candid_photography: "Candid Photography",
-  cinematic_videography: "Cinematic Videography",
-  drone: "Drone",
-};
-
-const ADDON_LABELS: Record<ID, string> = {
-  led_screen: "LED Screen",
-  live_streaming: "Live Streaming",
-  ai_gallery: "AI Gallery",
-  instant_teaser: "Instant Teaser or Same-Day Teaser",
-};
-
 function labelForCoverage(id: ID): string {
-  return COVERAGE_LABELS[id] ?? id;
+  return getCoverageOption(id)?.label ?? id;
 }
 
 function labelForAddOn(id: ID): string {
-  return ADDON_LABELS[id] ?? id;
+  return getAddOnOption(id)?.label ?? id;
 }

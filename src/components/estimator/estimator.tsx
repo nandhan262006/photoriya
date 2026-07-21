@@ -45,7 +45,7 @@ function EstimatorShell() {
       case 3: {
         return state.selectedSubEvents.some((id) => {
           const cfg = state.subEventConfig[id];
-          return cfg && cfg.coverage.length > 0;
+          return cfg && (cfg.coverage.length > 0 || cfg.reels > 0);
         });
       }
       default:

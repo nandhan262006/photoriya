@@ -1,26 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
-}
-
-function getDb() {
-  if (!prisma) throw new Error("Database not configured");
-  return prisma;
-}
+import { requireAdmin, getDb } from "@/lib/db-utils";
 
 export async function getTemplates() {
   await requireAdmin();
   const db = getDb();
-  return db.eventTemplate.findMany({
-    include: { subEvents: { orderBy: { sortOrder: "asc" } } },
-    orderBy: { name: "asc" },
-  });
+  try {
+    return await db.eventTemplate.findMany({
+      include: { subEvents: { orderBy: { sortOrder: "asc" } } },
+      orderBy: { name: "asc" },
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getTemplate(id: number) {
@@ -49,7 +42,7 @@ export async function upsertTemplate(data: {
 }) {
   await requireAdmin();
   const db = getDb();
-  const payload: Record<string, unknown> = {
+  const payload = {
     typeId: data.typeId,
     name: data.name,
     tagline: data.tagline,
@@ -61,15 +54,18 @@ export async function upsertTemplate(data: {
     defaultReelMax: data.defaultReelMax,
     coverageOptions: JSON.stringify(data.coverageOptions),
     addOnOptions: JSON.stringify(data.addOnOptions),
+    defaultPrices: data.defaultPrices,
   };
-  if (data.defaultPrices !== undefined) {
-    payload.defaultPrices = data.defaultPrices;
-  }
   let result;
   if (data.id) {
     result = await db.eventTemplate.update({ where: { id: data.id }, data: payload });
   } else {
-    result = await db.eventTemplate.create({ data: payload as never });
+    result = await db.eventTemplate.create({
+      data: {
+        ...payload,
+        defaultPrices: payload.defaultPrices ?? "{}",
+      },
+    });
   }
   revalidatePath("/admin/templates");
   return result;

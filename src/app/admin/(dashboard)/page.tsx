@@ -78,8 +78,8 @@ export default async function AdminDashboard() {
               stats.recentBookings.map((b: BookingRow) => (
                 <tr key={b.id} className="border-b">
                   <td className="p-3 text-sm">{b.clientName}</td>
-                  <td className="p-3 text-sm">{b.service.name}</td>
-                  <td className="p-3 text-sm">{b.photographer.name}</td>
+                  <td className="p-3 text-sm">{b.serviceName}</td>
+                  <td className="p-3 text-sm">{b.photographerName}</td>
                   <td className="p-3 text-sm">{b.bookingDate}</td>
                   <td className="p-3 text-sm">{b.status}</td>
                   <td className="p-3 text-sm">₹{Number(b.totalPrice || 0).toLocaleString("en-IN")}</td>

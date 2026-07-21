@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
 
 export async function requireAdmin() {
   const session = await auth();
@@ -8,6 +8,6 @@ export async function requireAdmin() {
 }
 
 export function getDb() {
-  if (!prisma) throw new Error("Database not configured");
-  return prisma;
+  if (!db) throw new Error("Database not configured");
+  return db;
 }

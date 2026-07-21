@@ -1,6 +1,8 @@
 "use server";
 
 import { requireAdmin, getDb } from "@/lib/db-utils";
+import { estimateLead } from "@/lib/db/schema";
+import { sql, desc } from "drizzle-orm";
 
 export async function saveEstimateLead(data: {
   clientName: string;
@@ -11,7 +13,13 @@ export async function saveEstimateLead(data: {
 }) {
   const db = getDb();
   try {
-    await db.$executeRaw`INSERT INTO EstimateLead (clientName, clientPhone, eventType, eventName, estimateData, createdAt) VALUES (${data.clientName}, ${data.clientPhone}, ${data.eventType}, ${data.eventName}, ${data.estimateData}, datetime('now'))`;
+    await db.insert(estimateLead).values({
+      clientName: data.clientName,
+      clientPhone: data.clientPhone,
+      eventType: data.eventType,
+      eventName: data.eventName,
+      estimateData: data.estimateData,
+    });
     return { success: true };
   } catch (e) {
     console.error("Failed to save estimate lead:", e);
@@ -19,21 +27,11 @@ export async function saveEstimateLead(data: {
   }
 }
 
-interface EstimateLeadRow {
-  id: number;
-  clientName: string;
-  clientPhone: string;
-  eventType: string;
-  eventName: string;
-  estimateData: string;
-  createdAt: string;
-}
-
 export async function getEstimateLeads() {
   await requireAdmin();
   const db = getDb();
   try {
-    return await db.$queryRaw<EstimateLeadRow[]>`SELECT * FROM EstimateLead ORDER BY createdAt DESC`;
+    return await db.select().from(estimateLead).orderBy(desc(estimateLead.createdAt));
   } catch (e) {
     console.error("Failed to fetch estimate leads:", e);
     return [];

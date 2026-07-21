@@ -1,5 +1,7 @@
 import type { EventTemplate, ID, PriceRange } from "../types";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { eventTemplate, subEvent } from "@/lib/db/schema";
+import { eq, asc, and } from "drizzle-orm";
 import {
   deliverableRulesFor,
   commonRecommendations,
@@ -17,15 +19,23 @@ import {
   corporateTemplate,
 } from "./other-events";
 
+const HARDCODED_TEMPLATES: EventTemplate[] = [
+  weddingTemplate,
+  birthdayTemplate,
+  halfSareeTemplate,
+  babyShowerTemplate,
+  housewarmingTemplate,
+  anniversaryTemplate,
+  corporateTemplate,
+];
+
 async function loadDbTemplates(): Promise<EventTemplate[]> {
   try {
-    const db = prisma;
     if (!db) return [];
-    const dbTemplates = await db.eventTemplate.findMany({
-      where: { isActive: true },
-      include: { subEvents: { orderBy: { sortOrder: "asc" } } },
-    });
+    const dbTemplates = await db.select().from(eventTemplate).where(eq(eventTemplate.isActive, 1));
     if (!dbTemplates.length) return [];
+
+    const allSubEvents = await db.select().from(subEvent).orderBy(asc(subEvent.sortOrder));
 
     return dbTemplates.map((t) => {
       const coverageOptions: ID[] = safeJson<ID[]>(t.coverageOptions) ?? [];
@@ -40,6 +50,8 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         }
         return result;
       }
+
+      const templateSubEvents = allSubEvents.filter((se) => se.templateId === t.id);
 
       return {
         id: t.typeId,
@@ -57,13 +69,13 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
           : DEFAULT_ADDON_PRICES,
         defaultReelPrice: { value: t.defaultReelPrice },
         defaultMaxReels: t.defaultMaxReels,
-        subEvents: t.subEvents.map((se) => {
+        subEvents: templateSubEvents.map((se) => {
           const overrides: Record<string, unknown> = safeJson<Record<string, unknown>>(se.priceOverrides) ?? {};
           return {
             id: se.subEventId,
             name: se.name,
             description: se.description || undefined,
-            defaultSelected: se.defaultSelected,
+            defaultSelected: Boolean(se.defaultSelected),
             maxReels: se.maxReels ?? undefined,
             coverage: overrides.coverage as unknown as Partial<Record<ID, PriceRange>> | undefined,
             addOns: overrides.addOns as unknown as Partial<Record<ID, PriceRange>> | undefined,
@@ -83,16 +95,6 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
 function safeJson<T>(val: string): T | null {
   try { return JSON.parse(val) as T; } catch { return null; }
 }
-
-const HARDCODED_TEMPLATES: EventTemplate[] = [
-  weddingTemplate,
-  birthdayTemplate,
-  halfSareeTemplate,
-  babyShowerTemplate,
-  housewarmingTemplate,
-  anniversaryTemplate,
-  corporateTemplate,
-];
 
 export async function loadTemplates(): Promise<EventTemplate[]> {
   const dbTemplates = await loadDbTemplates();

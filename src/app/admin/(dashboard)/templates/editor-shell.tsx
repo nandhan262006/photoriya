@@ -19,7 +19,7 @@ interface SubEvent {
   subEventId: string;
   name: string;
   description: string;
-  defaultSelected: boolean;
+  defaultSelected: number;
   maxReels: number | null;
   sortOrder: number;
   priceOverrides: string;
@@ -33,7 +33,7 @@ interface Template {
   tagline: string;
   description: string;
   icon: string;
-  isActive: boolean;
+  isActive: number;
   defaultMaxReels: number;
   defaultReelPrice: number;
   coverageOptions: string;
@@ -115,7 +115,7 @@ function EventsEditor({ templates }: { templates: Template[] }) {
   const [editing, setEditing] = useState<number | null>(null);
   const [form, setForm] = useState({
     typeId: "", name: "", tagline: "", description: "",
-    icon: "heart", isActive: true,
+    icon: "heart", isActive: 1 as number,
     defaultMaxReels: 3, defaultReelPrice: 6000,
     coverageOptions: [] as string[],
     addOnOptions: [] as string[],
@@ -133,7 +133,7 @@ function EventsEditor({ templates }: { templates: Template[] }) {
       });
       setEditing(t.id);
     } else {
-      setForm({ typeId: "", name: "", tagline: "", description: "", icon: "heart", isActive: true, defaultMaxReels: 3, defaultReelPrice: 6000, coverageOptions: [], addOnOptions: [] });
+      setForm({ typeId: "", name: "", tagline: "", description: "", icon: "heart", isActive: 1, defaultMaxReels: 3, defaultReelPrice: 6000, coverageOptions: [], addOnOptions: [] });
       setEditing(NEW_ID);
     }
   };
@@ -181,7 +181,7 @@ function EventsEditor({ templates }: { templates: Template[] }) {
             </select>
           </div>
           <div className="flex items-end gap-2 pb-2">
-            <input type="checkbox" id="ea" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="size-4" />
+            <input type="checkbox" id="ea" checked={Boolean(form.isActive)} onChange={(e) => setForm({ ...form, isActive: e.target.checked ? 1 : 0 })} className="size-4" />
             <Label htmlFor="ea">Active</Label>
           </div>
           <div className="sm:col-span-2 flex gap-2">
@@ -226,7 +226,7 @@ function SubEventsEditor({
 
   const startEdit = (se?: SubEvent) => {
     if (se) {
-      setForm({ subEventId: se.subEventId, name: se.name, description: se.description, defaultSelected: se.defaultSelected, maxReels: se.maxReels?.toString() ?? "", sortOrder: se.sortOrder });
+      setForm({ subEventId: se.subEventId, name: se.name, description: se.description, defaultSelected: Boolean(se.defaultSelected), maxReels: se.maxReels?.toString() ?? "", sortOrder: se.sortOrder });
       setEditing(se.id);
     } else {
       setForm({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: tmpl?.subEvents.length ?? 0 });

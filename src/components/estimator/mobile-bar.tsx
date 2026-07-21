@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { X, ReceiptIndianRupee } from "lucide-react";
 import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
@@ -12,7 +11,6 @@ export function MobileEstimateBar() {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
 
-  const router = useRouter();
   const total = estimate.isEmpty ? null : estimate.total;
   const eventName = template?.name ?? "";
 
@@ -89,19 +87,12 @@ export function MobileEstimateBar() {
           {/* Footer */}
           {total && (
             <div className="border-t px-4 py-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Estimated Total</span>
                 <span className="text-lg font-semibold tabular-nums">
-{formatINR(total)}
+                  {formatINR(total)}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => router.push("/booking")}
-                className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              >
-                Book Now
-              </button>
             </div>
           )}
         </div>

@@ -11,10 +11,12 @@ export async function getTemplates() {
   try {
     const templates = await db.select().from(eventTemplate).orderBy(asc(eventTemplate.name));
     const subEvents = await db.select().from(subEvent).orderBy(asc(subEvent.sortOrder));
-    return templates.map((t) => ({
-      ...t,
-      subEvents: subEvents.filter((se) => se.templateId === t.id),
-    }));
+    return JSON.parse(JSON.stringify(
+      templates.map((t) => ({
+        ...t,
+        subEvents: subEvents.filter((se) => se.templateId === t.id),
+      }))
+    ));
   } catch {
     return [];
   }

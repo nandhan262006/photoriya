@@ -98,7 +98,7 @@ function safeJson<T>(val: string): T | null {
 
 export async function loadTemplates(): Promise<EventTemplate[]> {
   const dbTemplates = await loadDbTemplates();
-  if (dbTemplates.length > 0) return dbTemplates;
+  if (dbTemplates.length > 0) return JSON.parse(JSON.stringify(dbTemplates));
   return HARDCODED_TEMPLATES;
 }
 

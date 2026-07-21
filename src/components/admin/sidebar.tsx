@@ -7,18 +7,18 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  CalendarCheck,
   FileText,
   LogOut,
   Menu,
   X,
+  ReceiptIndianRupee,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
   { href: "/admin/templates", label: "Estimator Editor", icon: FileText },
+  { href: "/admin/estimates", label: "Estimates", icon: ReceiptIndianRupee },
 ];
 
 export function AdminSidebar() {

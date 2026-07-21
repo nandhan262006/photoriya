@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAddOnOption } from "@/lib/estimator/catalog";
-import { formatRangeCompact } from "@/lib/estimator/format";
+import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 import type { EventTemplate, ID, PriceRange } from "@/lib/estimator/types";
 import { ToggleChip } from "../primitives";
@@ -112,7 +112,7 @@ export function AddOnStep() {
                           description={opt.description}
                           selected={cfg.addOns.includes(id)}
                           priceLabel={
-                            price ? formatRangeCompact(price) : undefined
+                            price ? formatINR(price.value) : undefined
                           }
                           onClick={() =>
                             dispatch({

@@ -9,10 +9,8 @@
 
 export type ID = string;
 
-/** A price expressed as an honest min/max range (INR, whole rupees). */
 export interface PriceRange {
-  min: number;
-  max: number;
+  value: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -193,16 +191,13 @@ export interface LineItem {
   label: string;
   detail?: string;
   group: string;
-  min: number;
-  max: number;
+  value: number;
 }
 
 export interface EstimateBreakdown {
   items: LineItem[];
-  subtotal: PriceRange;
-  total: PriceRange;
+  total: number;
   subEventCount: number;
-  /** True when nothing is configured yet (shows a placeholder). */
   isEmpty: boolean;
 }
 

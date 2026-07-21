@@ -63,6 +63,7 @@ model EventTemplate {
   defaultReelMax    Int       @default(8000)
   coverageOptions   String    @default("[]")
   addOnOptions      String    @default("[]")
+  defaultPrices     String    @default("{}")
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   subEvents         SubEvent[]
@@ -81,4 +82,14 @@ model SubEvent {
   template        EventTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   @@unique([subEventId, templateId])
+}
+
+model EstimateLead {
+  id          Int      @id @default(autoincrement())
+  clientName  String
+  clientPhone String
+  eventType   String
+  eventName   String   @default("")
+  estimateData String  @default("{}")
+  createdAt   DateTime @default(now())
 }

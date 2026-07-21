@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { X, ReceiptIndianRupee } from "lucide-react";
-import { formatRangeShort } from "@/lib/estimator/format";
+import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 import { EstimatePanel } from "./estimate-panel";
 
@@ -11,6 +12,7 @@ export function MobileEstimateBar() {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
 
+  const router = useRouter();
   const total = estimate.isEmpty ? null : estimate.total;
   const eventName = template?.name ?? "";
 
@@ -21,11 +23,6 @@ export function MobileEstimateBar() {
       setClosing(false);
     }, 250);
   }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
 
   return (
     <div className="lg:hidden">
@@ -42,7 +39,7 @@ export function MobileEstimateBar() {
           </div>
           {total ? (
             <span className="text-xs font-semibold tabular-nums leading-tight">
-              {formatRangeShort(total)}
+              {formatINR(total)}
             </span>
           ) : (
             <span className="text-xs text-muted-foreground leading-tight">—</span>
@@ -95,11 +92,12 @@ export function MobileEstimateBar() {
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-muted-foreground">Estimated Total</span>
                 <span className="text-lg font-semibold tabular-nums">
-                  {formatRangeShort(total)}
+{formatINR(total)}
                 </span>
               </div>
               <button
                 type="button"
+                onClick={() => router.push("/booking")}
                 className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               >
                 Book Now

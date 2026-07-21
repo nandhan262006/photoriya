@@ -70,10 +70,15 @@ export function BookingFlow({ services, photographers }: BookingFlowProps) {
     fd.set("endTime", selectedEndTime);
     fd.set("totalPrice", selectedService.price);
 
-    await createBooking(fd);
-    setSubmitting(false);
-    toast.success("Booking confirmed!");
-    router.push("/booking/confirmation");
+    try {
+      await createBooking(fd);
+      toast.success("Booking confirmed!");
+      router.push("/booking/confirmation");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create booking");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

@@ -20,7 +20,7 @@ export function ServiceGallery({ images }: ServiceGalleryProps) {
         {duplicatedImages.map((image, index) => (
           <div
             key={index}
-            className="relative flex-none w-72 h-48 rounded-xl overflow-hidden"
+            className="relative flex-none w-64 h-40 sm:w-96 sm:h-56 rounded-xl overflow-hidden"
           >
             <Image
               src={image.src}

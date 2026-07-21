@@ -18,30 +18,28 @@ const ALL_COVERAGE: ID[] = [
 ];
 
 const PARTY_ADDONS: ID[] = [
-  "booth_360",
-  "instant_prints",
-  "photobooth",
-  "same_day_edit",
   "led_screen",
+  "live_streaming",
+  "ai_gallery",
+  "instant_teaser",
 ];
 
 const INTIMATE_ADDONS: ID[] = [
-  "instant_prints",
-  "photobooth",
-  "booth_360",
   "live_streaming",
+  "ai_gallery",
+  "instant_teaser",
 ];
 
 const CORPORATE_ADDONS: ID[] = [
   "led_screen",
   "live_streaming",
-  "instant_prints",
-  "photobooth",
+  "ai_gallery",
+  "instant_teaser",
 ];
 
 const galaCoverage: Partial<Record<ID, PriceRange>> = {
-  candid_photography: { min: 35000, max: 55000 },
-  cinematic_videography: { min: 50000, max: 80000 },
+  candid_photography: { value: 45000 },
+  cinematic_videography: { value: 65000 },
 };
 
 export const birthdayTemplate: EventTemplate = {
@@ -66,9 +64,9 @@ export const birthdayTemplate: EventTemplate = {
   deliverableRules: deliverableRulesFor(ALL_COVERAGE, PARTY_ADDONS),
   recommendationRules: [
     {
-      id: "rec-birthday-booth",
-      suggest: { type: "addon", id: "photobooth" },
-      message: "A Photo Booth keeps younger guests entertained all evening.",
+      id: "rec-birthday-gallery",
+      suggest: { type: "addon", id: "ai_gallery" },
+      message: "An AI Gallery lets guests relive the celebration through smart-curated photos.",
       requiresAnySubEvent: ["party", "games"],
     },
     {

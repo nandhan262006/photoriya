@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatRange, formatRangeShort } from "@/lib/estimator/format";
+import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
 const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
@@ -41,7 +41,7 @@ export function EstimateStep() {
               Estimated total (approximate)
             </span>
             <div className="mt-1 font-heading text-2xl font-semibold tabular-nums sm:text-3xl">
-              {formatRangeShort(estimate.total)}
+              {formatINR(estimate.total)}
             </div>
             {estimate.subEventCount > 0 && (
               <span className="mt-2 inline-block text-sm text-muted-foreground">
@@ -76,7 +76,7 @@ export function EstimateStep() {
                           )}
                         </div>
                         <span className="shrink-0 tabular-nums">
-                          {formatRange({ min: item.min, max: item.max })}
+                          {formatINR(item.value)}
                         </span>
                       </div>
                     ))}

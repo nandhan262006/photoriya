@@ -5,7 +5,7 @@ import { ServiceGallery } from "@/components/service-gallery";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="flex-1 flex flex-col">
       <header className="border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center">
           <Link href="/" className="flex items-center">
@@ -14,11 +14,11 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl mb-4">
+      <section className="max-w-7xl mx-auto px-4 py-4 flex-1 text-center">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-4xl mb-2">
           Capture Your Best Moments
         </h1>
-        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+        <p className="text-base text-muted-foreground mb-4 max-w-2xl mx-auto">
           Professional photography services tailored to your needs. Book a
           session with our talented photographers.
         </p>
@@ -31,10 +31,10 @@ export default function HomePage() {
         </Link>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="flex items-center gap-2 mb-8">
+      <section className="max-w-7xl mx-auto px-4 py-2">
+        <div className="flex items-center gap-2 mb-2">
           <Sparkles className="h-5 w-5" />
-          <h2 className="text-2xl font-semibold">Our Work</h2>
+          <h2 className="text-xl font-semibold">Our Work</h2>
         </div>
         <ServiceGallery
           images={[

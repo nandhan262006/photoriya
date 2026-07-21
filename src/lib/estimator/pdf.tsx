@@ -16,7 +16,7 @@ import {
 } from "@react-pdf/renderer";
 import fs from "fs";
 import path from "path";
-import { formatINR, formatRangeShort } from "./format";
+import { formatINR } from "./format";
 import type {
   DeliverableGroup,
   EstimateBreakdown,
@@ -288,7 +288,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
               ) : null}
             </View>
             <Text style={styles.linePrice}>
-              {formatRangeShort({ min: item.min, max: item.max })}
+              {formatINR(item.value)}
             </Text>
           </View>
         ))}
@@ -301,7 +301,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
               <Text style={styles.totalValue}>
                 {estimate.isEmpty
                   ? formatINR(0)
-                  : formatRangeShort(estimate.total)}
+                  : formatINR(estimate.total)}
               </Text>
             </View>
 
@@ -354,7 +354,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
                 ) : null}
               </View>
               <Text style={styles.linePrice}>
-                {formatRangeShort({ min: item.min, max: item.max })}
+                {formatINR(item.value)}
               </Text>
             </View>
           ))}
@@ -367,7 +367,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
                 <Text style={styles.totalValue}>
                   {estimate.isEmpty
                     ? formatINR(0)
-                    : formatRangeShort(estimate.total)}
+                    : formatINR(estimate.total)}
                 </Text>
               </View>
 
@@ -421,7 +421,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
                 ) : null}
               </View>
               <Text style={styles.linePrice}>
-                {formatRangeShort({ min: item.min, max: item.max })}
+                {formatINR(item.value)}
               </Text>
             </View>
           ))}
@@ -431,7 +431,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
             <Text style={styles.totalValue}>
               {estimate.isEmpty
                 ? formatINR(0)
-                : formatRangeShort(estimate.total)}
+                : formatINR(estimate.total)}
             </Text>
           </View>
 

@@ -20,20 +20,16 @@ const ALL_COVERAGE = [
 const ALL_ADDONS = [
   "led_screen",
   "live_streaming",
-  "crane",
-  "booth_360",
-  "instant_prints",
-  "photobooth",
-  "same_day_edit",
+  "ai_gallery",
+  "instant_teaser",
 ];
 
-/** Main-day events command higher coverage prices than ceremonies. */
 const MAIN_DAY_COVERAGE = {
-  candid_photography: { min: 45000, max: 75000 },
-  cinematic_videography: { min: 60000, max: 100000 },
-  drone: { min: 20000, max: 35000 },
-  traditional_photography: { min: 12000, max: 20000 },
-  traditional_videography: { min: 18000, max: 30000 },
+  candid_photography: { value: 60000 },
+  cinematic_videography: { value: 80000 },
+  drone: { value: 28000 },
+  traditional_photography: { value: 16000 },
+  traditional_videography: { value: 24000 },
 };
 
 export const weddingTemplate: EventTemplate = {
@@ -91,9 +87,9 @@ export const weddingTemplate: EventTemplate = {
       whenSubEvents: ["wedding"],
     },
     {
-      id: "rec-reception-prints",
-      suggest: { type: "addon", id: "instant_prints" },
-      message: "Instant Prints at the Reception are a hit with guests.",
+      id: "rec-reception-gallery",
+      suggest: { type: "addon", id: "ai_gallery" },
+      message: "An AI Gallery lets guests view and download photos from the Reception instantly.",
       whenSubEvents: ["reception"],
     },
   ],

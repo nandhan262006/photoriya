@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ interface Template {
   defaultReelMax: number;
   coverageOptions: string;
   addOnOptions: string;
+  defaultPrices: string;
   subEvents: SubEvent[];
 }
 
@@ -48,8 +49,7 @@ const COVERAGE_IDS = [
 ];
 
 const ADDON_IDS = [
-  "led_screen", "live_streaming", "crane", "booth_360",
-  "instant_prints", "photobooth", "same_day_edit",
+  "led_screen", "live_streaming", "ai_gallery", "instant_teaser",
 ];
 
 const COVERAGE_LABELS: Record<string, string> = {
@@ -61,27 +61,24 @@ const COVERAGE_LABELS: Record<string, string> = {
 };
 
 const ADDON_LABELS: Record<string, string> = {
-  led_screen: "LED Screen", live_streaming: "Live Streaming",
-  crane: "Crane", booth_360: "360 Booth",
-  instant_prints: "Instant Prints", photobooth: "Photo Booth",
-  same_day_edit: "Same-Day Edit",
+  led_screen: "LED Screen",
+  live_streaming: "Live Streaming",
+  ai_gallery: "AI Gallery",
+  instant_teaser: "Instant Teaser / Same-Day",
 };
 
-const ICOS = ["heart", "cake", "flower", "baby", "home", "gift", "camera"];
+const ICONS = ["heart", "cake", "flower", "baby", "home", "gift", "camera"];
 
-type Tab = "events" | "subevents" | "coverage" | "addons" | "reels";
+type Tab = "events" | "subevents" | "coverage" | "addons" | "reels" | "prices";
 
 export function EditorShell({ templates }: { templates: Template[] }) {
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("events");
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
-
-  const tmpl = templates.find((t) => t.id === selectedTemplate);
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-1 border-b pb-1">
-        {(["events", "subevents", "coverage", "addons", "reels"] as Tab[]).map((t) => (
+        {(["events", "subevents", "coverage", "addons", "reels", "prices"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -94,7 +91,8 @@ export function EditorShell({ templates }: { templates: Template[] }) {
             {t === "events" ? "1. Event Types" :
              t === "subevents" ? "2. Sub-Events" :
              t === "coverage" ? "3. Coverage Prices" :
-             t === "addons" ? "4. Add-on Prices" : "5. Reels & Albums"}
+             t === "addons" ? "4. Add-on Prices" :
+             t === "reels" ? "5. Reels & Albums" : "6. Default Prices"}
           </button>
         ))}
       </div>
@@ -122,9 +120,12 @@ export function EditorShell({ templates }: { templates: Template[] }) {
         />
       )}
       {tab === "reels" && <ReelsEditor templates={templates} />}
+      {tab === "prices" && <PricesEditor templates={templates} />}
     </div>
   );
 }
+
+const NEW_ID = -1;
 
 function EventsEditor({ templates }: { templates: Template[] }) {
   const router = useRouter();
@@ -133,6 +134,8 @@ function EventsEditor({ templates }: { templates: Template[] }) {
     typeId: "", name: "", tagline: "", description: "",
     icon: "heart", isActive: true,
     defaultMaxReels: 3, defaultReelMin: 4000, defaultReelMax: 8000,
+    coverageOptions: [] as string[],
+    addOnOptions: [] as string[],
   });
 
   const startEdit = (t?: Template) => {
@@ -143,26 +146,38 @@ function EventsEditor({ templates }: { templates: Template[] }) {
         defaultMaxReels: t.defaultMaxReels,
         defaultReelMin: t.defaultReelMin,
         defaultReelMax: t.defaultReelMax,
+        coverageOptions: safeParse(t.coverageOptions) ?? [],
+        addOnOptions: safeParse(t.addOnOptions) ?? [],
       });
       setEditing(t.id);
     } else {
-      setForm({ typeId: "", name: "", tagline: "", description: "", icon: "heart", isActive: true, defaultMaxReels: 3, defaultReelMin: 4000, defaultReelMax: 8000 });
-      setEditing(null);
+      setForm({ typeId: "", name: "", tagline: "", description: "", icon: "heart", isActive: true, defaultMaxReels: 3, defaultReelMin: 4000, defaultReelMax: 8000, coverageOptions: [], addOnOptions: [] });
+      setEditing(NEW_ID);
     }
   };
 
   const save = async () => {
-    await upsertTemplate({ ...form, id: editing ?? undefined, coverageOptions: [], addOnOptions: [] });
-    toast.success("Saved");
-    setEditing(null);
-    router.refresh();
+    try {
+      const templateId = editing === NEW_ID ? undefined : editing ?? undefined;
+      const existing = typeof templateId === "number" ? templates.find((t) => t.id === templateId) : null;
+      await upsertTemplate({ ...form, id: templateId, defaultPrices: existing?.defaultPrices });
+      toast.success("Saved");
+      setEditing(null);
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    }
   };
 
   const del = async (id: number) => {
     if (!confirm("Delete this event type and all its sub-events?")) return;
-    await deleteTemplate(id);
-    toast.success("Deleted");
-    router.refresh();
+    try {
+      await deleteTemplate(id);
+      toast.success("Deleted");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to delete");
+    }
   };
 
   return (
@@ -180,7 +195,7 @@ function EventsEditor({ templates }: { templates: Template[] }) {
           <div>
             <Label>Icon</Label>
             <select className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}>
-              {ICOS.map((i) => <option key={i} value={i}>{i}</option>)}
+              {ICONS.map((i) => <option key={i} value={i}>{i}</option>)}
             </select>
           </div>
           <div className="flex items-end gap-2 pb-2">
@@ -213,6 +228,8 @@ function EventsEditor({ templates }: { templates: Template[] }) {
   );
 }
 
+const NEW_SUB_ID = -1;
+
 function SubEventsEditor({
   templates, selectedTemplate, onSelectTemplate,
 }: {
@@ -231,32 +248,41 @@ function SubEventsEditor({
       setEditing(se.id);
     } else {
       setForm({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: tmpl?.subEvents.length ?? 0 });
-      setEditing(null);
+      setEditing(NEW_SUB_ID);
     }
   };
 
   const save = async () => {
     if (!selectedTemplate || !form.subEventId || !form.name) { toast.error("ID and name required"); return; }
-    await upsertSubEvent({
-      id: editing ?? undefined,
-      subEventId: form.subEventId,
-      name: form.name,
-      description: form.description,
-      defaultSelected: form.defaultSelected,
-      maxReels: form.maxReels ? Number(form.maxReels) : null,
-      sortOrder: form.sortOrder,
-      priceOverrides: {},
-      templateId: selectedTemplate,
-    });
-    toast.success("Saved");
-    setEditing(null);
-    router.refresh();
+    try {
+      await upsertSubEvent({
+        id: editing === NEW_SUB_ID ? undefined : editing ?? undefined,
+        subEventId: form.subEventId,
+        name: form.name,
+        description: form.description,
+        defaultSelected: form.defaultSelected,
+        maxReels: form.maxReels ? Number(form.maxReels) : null,
+        sortOrder: form.sortOrder,
+        priceOverrides: {},
+        templateId: selectedTemplate,
+      });
+      toast.success("Saved");
+      setEditing(null);
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    }
   };
 
   const del = async (id: number) => {
     if (!confirm("Delete this sub-event?")) return;
-    await deleteSubEvent(id);
-    router.refresh();
+    try {
+      await deleteSubEvent(id);
+      toast.success("Deleted");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to delete");
+    }
   };
 
   return (
@@ -333,38 +359,58 @@ function CoverageEditor({
   const router = useRouter();
   const tmpl = templates.find((t) => t.id === selectedTemplate);
 
-  const [prices, setPrices] = useState<Record<string, Record<string, { min: string; max: string }>>>({});
+  const [prices, setPrices] = useState<Record<number, Record<string, string>>>({});
 
   const loadPrices = (seId: number) => {
     const se = tmpl?.subEvents.find((s) => s.id === seId);
     if (!se) return {};
     try {
       const parsed = JSON.parse(se.priceOverrides);
-      const result: Record<string, { min: string; max: string }> = {};
+      const result: Record<string, string> = {};
       if (parsed.coverage) {
-        for (const [key, val] of Object.entries(parsed.coverage as Record<string, { min: number; max: number }>)) {
-          result[key] = { min: String(val.min), max: String(val.max) };
+        for (const [key, val] of Object.entries(parsed.coverage as Record<string, { value: number }>)) {
+          result[key] = String((val as { value: number }).value);
         }
       }
       return result;
     } catch { return {}; }
   };
 
-  const saveCoveragePrice = async (subEventId: number, coverageId: string, min: string, max: string) => {
+  useEffect(() => {
+    if (!tmpl) { setPrices({}); return; }
+    const all: Record<number, Record<string, string>> = {};
+    for (const se of tmpl.subEvents) {
+      all[se.id] = loadPrices(se.id);
+    }
+    setPrices(all);
+  }, [selectedTemplate, templates]);
+
+  const saveRow = async (seId: number) => {
     if (!selectedTemplate) return;
-    const se = tmpl?.subEvents.find((s) => s.id === subEventId);
+    const se = tmpl?.subEvents.find((s) => s.id === seId);
     if (!se) return;
+    const row = prices[seId] ?? {};
+    const coverage: Record<string, { value: number }> = {};
+    for (const cid of COVERAGE_IDS) {
+      if (row[cid] !== undefined && row[cid] !== "") {
+        coverage[cid] = { value: Number(row[cid]) || 0 };
+      }
+    }
     let overrides: Record<string, unknown> = {};
     try { overrides = JSON.parse(se.priceOverrides); } catch {}
-    if (!overrides.coverage) overrides.coverage = {};
-    (overrides.coverage as Record<string, { min: number; max: number }>)[coverageId] = { min: Number(min) || 0, max: Number(max) || 0 };
-    await upsertSubEvent({
-      id: subEventId, subEventId: se.subEventId, name: se.name,
-      description: se.description, defaultSelected: se.defaultSelected,
-      maxReels: se.maxReels, sortOrder: se.sortOrder,
-      priceOverrides: overrides, templateId: selectedTemplate,
-    });
-    router.refresh();
+    overrides.coverage = coverage;
+    try {
+      await upsertSubEvent({
+        id: seId, subEventId: se.subEventId, name: se.name,
+        description: se.description, defaultSelected: se.defaultSelected,
+        maxReels: se.maxReels, sortOrder: se.sortOrder,
+        priceOverrides: overrides, templateId: selectedTemplate,
+      });
+      toast.success("Saved");
+      router.refresh();
+    } catch {
+      toast.error("Failed to save");
+    }
   };
 
   return (
@@ -392,43 +438,32 @@ function CoverageEditor({
                 {COVERAGE_IDS.map((cid) => (
                   <th key={cid} className="p-2 text-left font-medium min-w-[140px]">{COVERAGE_LABELS[cid]}</th>
                 ))}
+                <th className="p-2 text-left font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {tmpl.subEvents.map((se) => {
-                const sePrices = loadPrices(se.id);
+                const row = prices[se.id] ?? {};
                 return (
                   <tr key={se.id} className="border-b">
                     <td className="p-2 font-medium text-sm">{se.name}</td>
-                    {COVERAGE_IDS.map((cid) => {
-                      const p = sePrices[cid];
-                      return (
-                        <td key={cid} className="p-1">
-                          <div className="flex gap-1">
-                            <Input
-                              size={1}
-                              className="h-7 w-16 text-xs"
-                              placeholder="Min"
-                              value={p?.min ?? ""}
-                              onChange={(e) => {
-                                const max = p?.max ?? "";
-                                saveCoveragePrice(se.id, cid, e.target.value, max);
-                              }}
-                            />
-                            <Input
-                              size={1}
-                              className="h-7 w-16 text-xs"
-                              placeholder="Max"
-                              value={p?.max ?? ""}
-                              onChange={(e) => {
-                                const min = p?.min ?? "";
-                                saveCoveragePrice(se.id, cid, min, e.target.value);
-                              }}
-                            />
-                          </div>
-                        </td>
-                      );
-                    })}
+                    {COVERAGE_IDS.map((cid) => (
+                      <td key={cid} className="p-1">
+                        <Input
+                          size={1}
+                          className="h-7 w-24 text-xs"
+                          placeholder="Price"
+                          value={row[cid] ?? ""}
+                          onChange={(e) => setPrices({
+                            ...prices,
+                            [se.id]: { ...(prices[se.id] ?? {}), [cid]: e.target.value },
+                          })}
+                        />
+                      </td>
+                    ))}
+                    <td className="p-1">
+                      <Button size="sm" onClick={() => saveRow(se.id)}>Save</Button>
+                    </td>
                   </tr>
                 );
               })}
@@ -450,36 +485,58 @@ function AddOnEditor({
   const router = useRouter();
   const tmpl = templates.find((t) => t.id === selectedTemplate);
 
-  const saveAddOnPrice = async (subEventId: number, addOnId: string, min: string, max: string) => {
-    if (!selectedTemplate) return;
-    const se = tmpl?.subEvents.find((s) => s.id === subEventId);
-    if (!se) return;
-    let overrides: Record<string, unknown> = {};
-    try { overrides = JSON.parse(se.priceOverrides); } catch {}
-    if (!overrides.addOns) overrides.addOns = {};
-    (overrides.addOns as Record<string, { min: number; max: number }>)[addOnId] = { min: Number(min) || 0, max: Number(max) || 0 };
-    await upsertSubEvent({
-      id: subEventId, subEventId: se.subEventId, name: se.name,
-      description: se.description, defaultSelected: se.defaultSelected,
-      maxReels: se.maxReels, sortOrder: se.sortOrder,
-      priceOverrides: overrides, templateId: selectedTemplate,
-    });
-    router.refresh();
-  };
+  const [prices, setPrices] = useState<Record<number, Record<string, string>>>({});
 
-  const loadAddOnPrices = (seId: number) => {
+  const loadPrices = (seId: number) => {
     const se = tmpl?.subEvents.find((s) => s.id === seId);
     if (!se) return {};
     try {
       const parsed = JSON.parse(se.priceOverrides);
-      const result: Record<string, { min: string; max: string }> = {};
+      const result: Record<string, string> = {};
       if (parsed.addOns) {
-        for (const [key, val] of Object.entries(parsed.addOns as Record<string, { min: number; max: number }>)) {
-          result[key] = { min: String(val.min), max: String(val.max) };
+        for (const [key, val] of Object.entries(parsed.addOns as Record<string, { value: number }>)) {
+          result[key] = String((val as { value: number }).value);
         }
       }
       return result;
     } catch { return {}; }
+  };
+
+  useEffect(() => {
+    if (!tmpl) { setPrices({}); return; }
+    const all: Record<number, Record<string, string>> = {};
+    for (const se of tmpl.subEvents) {
+      all[se.id] = loadPrices(se.id);
+    }
+    setPrices(all);
+  }, [selectedTemplate, templates]);
+
+  const saveRow = async (seId: number) => {
+    if (!selectedTemplate) return;
+    const se = tmpl?.subEvents.find((s) => s.id === seId);
+    if (!se) return;
+    const row = prices[seId] ?? {};
+    const addOns: Record<string, { value: number }> = {};
+    for (const aid of ADDON_IDS) {
+      if (row[aid] !== undefined && row[aid] !== "") {
+        addOns[aid] = { value: Number(row[aid]) || 0 };
+      }
+    }
+    let overrides: Record<string, unknown> = {};
+    try { overrides = JSON.parse(se.priceOverrides); } catch {}
+    overrides.addOns = addOns;
+    try {
+      await upsertSubEvent({
+        id: seId, subEventId: se.subEventId, name: se.name,
+        description: se.description, defaultSelected: se.defaultSelected,
+        maxReels: se.maxReels, sortOrder: se.sortOrder,
+        priceOverrides: overrides, templateId: selectedTemplate,
+      });
+      toast.success("Saved");
+      router.refresh();
+    } catch {
+      toast.error("Failed to save");
+    }
   };
 
   return (
@@ -507,25 +564,23 @@ function AddOnEditor({
                 {ADDON_IDS.map((aid) => (
                   <th key={aid} className="p-2 text-left font-medium min-w-[140px]">{ADDON_LABELS[aid]}</th>
                 ))}
+                <th className="p-2 text-left font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {tmpl.subEvents.map((se) => {
-                const sePrices = loadAddOnPrices(se.id);
+                const row = prices[se.id] ?? {};
                 return (
                   <tr key={se.id} className="border-b">
                     <td className="p-2 font-medium text-sm">{se.name}</td>
-                    {ADDON_IDS.map((aid) => {
-                      const p = sePrices[aid];
-                      return (
-                        <td key={aid} className="p-1">
-                          <div className="flex gap-1">
-                            <Input size={1} className="h-7 w-16 text-xs" placeholder="Min" value={p?.min ?? ""} onChange={(e) => { const m = p?.max ?? ""; saveAddOnPrice(se.id, aid, e.target.value, m); }} />
-                            <Input size={1} className="h-7 w-16 text-xs" placeholder="Max" value={p?.max ?? ""} onChange={(e) => { const n = p?.min ?? ""; saveAddOnPrice(se.id, aid, n, e.target.value); }} />
-                          </div>
-                        </td>
-                      );
-                    })}
+                    {ADDON_IDS.map((aid) => (
+                      <td key={aid} className="p-1">
+                        <Input size={1} className="h-7 w-24 text-xs" placeholder="Price" value={row[aid] ?? ""} onChange={(e) => setPrices({ ...prices, [se.id]: { ...(prices[se.id] ?? {}), [aid]: e.target.value } })} />
+                      </td>
+                    ))}
+                    <td className="p-1">
+                      <Button size="sm" onClick={() => saveRow(se.id)}>Save</Button>
+                    </td>
                   </tr>
                 );
               })}
@@ -535,6 +590,10 @@ function AddOnEditor({
       )}
     </div>
   );
+}
+
+function safeParse<T = string[]>(val: string): T | null {
+  try { return JSON.parse(val) as T; } catch { return null; }
 }
 
 function ReelsEditor({ templates }: { templates: Template[] }) {
@@ -553,15 +612,20 @@ function ReelsEditor({ templates }: { templates: Template[] }) {
     if (!editing) return;
     const t = templates.find((t) => t.id === editing);
     if (!t) return;
-    await upsertTemplate({
-      id: editing,
-      typeId: t.typeId, name: t.name, tagline: t.tagline,
-      description: t.description, icon: t.icon, isActive: t.isActive,
-      ...form, coverageOptions: [], addOnOptions: [],
-    });
-    toast.success("Saved");
-    setEditing(null);
-    router.refresh();
+    try {
+      await upsertTemplate({
+        id: editing,
+        typeId: t.typeId, name: t.name, tagline: t.tagline,
+        description: t.description, icon: t.icon, isActive: t.isActive,
+        ...form, coverageOptions: safeParse(t.coverageOptions) ?? [], addOnOptions: safeParse(t.addOnOptions) ?? [],
+        defaultPrices: t.defaultPrices,
+      });
+      toast.success("Saved");
+      setEditing(null);
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    }
   };
 
   return (
@@ -591,6 +655,117 @@ function ReelsEditor({ templates }: { templates: Template[] }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+function PricesEditor({ templates }: { templates: Template[] }) {
+  const router = useRouter();
+  const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
+  const [prices, setPrices] = useState<Record<string, string>>({});
+  const [addonPrices, setAddonPrices] = useState<Record<string, string>>({});
+
+  const tmpl = templates.find((t) => t.id === selectedTemplate);
+
+  useEffect(() => {
+    if (!tmpl) { setPrices({}); setAddonPrices({}); return; }
+    const parsed = safeParse<Record<string, Record<string, number>>>(tmpl.defaultPrices);
+    const cov: Record<string, string> = {};
+    const add: Record<string, string> = {};
+    if (parsed?.coverage) {
+      for (const [key, val] of Object.entries(parsed.coverage)) cov[key] = String(val);
+    }
+    if (parsed?.addOns) {
+      for (const [key, val] of Object.entries(parsed.addOns)) add[key] = String(val);
+    }
+    setPrices(cov);
+    setAddonPrices(add);
+  }, [selectedTemplate, templates]);
+
+  const save = async () => {
+    if (!selectedTemplate || !tmpl) return;
+    const coverage: Record<string, number> = {};
+    const addOns: Record<string, number> = {};
+    for (const [key, val] of Object.entries(prices)) { if (val) coverage[key] = Number(val); }
+    for (const [key, val] of Object.entries(addonPrices)) { if (val) addOns[key] = Number(val); }
+    try {
+      await upsertTemplate({
+        id: selectedTemplate,
+        typeId: tmpl.typeId, name: tmpl.name, tagline: tmpl.tagline,
+        description: tmpl.description, icon: tmpl.icon, isActive: tmpl.isActive,
+        defaultMaxReels: tmpl.defaultMaxReels,
+        defaultReelMin: tmpl.defaultReelMin,
+        defaultReelMax: tmpl.defaultReelMax,
+        coverageOptions: safeParse(tmpl.coverageOptions) ?? [],
+        addOnOptions: safeParse(tmpl.addOnOptions) ?? [],
+        defaultPrices: JSON.stringify({ coverage, addOns }),
+      });
+      toast.success("Default prices saved");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-2 flex-wrap">
+        {templates.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setSelectedTemplate(t.id)}
+            className={`rounded-[9999px] border px-3 py-1 text-sm transition-colors ${
+              selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
+            }`}
+          >
+            {t.name}
+          </button>
+        ))}
+      </div>
+
+      {tmpl && (
+        <div className="rounded-xl border p-4 flex flex-col gap-6">
+          <div>
+            <h3 className="text-sm font-medium mb-3">Default Coverage Prices</h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {COVERAGE_IDS.map((cid) => (
+                <div key={cid}>
+                  <Label className="text-xs">{COVERAGE_LABELS[cid]}</Label>
+                  <Input
+                    type="number"
+                    className="h-8 text-xs"
+                    placeholder="Price"
+                    value={prices[cid] ?? ""}
+                    onChange={(e) => setPrices({ ...prices, [cid]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium mb-3">Default Add-on Prices</h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {ADDON_IDS.map((aid) => (
+                <div key={aid}>
+                  <Label className="text-xs">{ADDON_LABELS[aid]}</Label>
+                  <Input
+                    type="number"
+                    className="h-8 text-xs"
+                    placeholder="Price"
+                    value={addonPrices[aid] ?? ""}
+                    onChange={(e) => setAddonPrices({ ...addonPrices, [aid]: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Button onClick={save}>Save Default Prices</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

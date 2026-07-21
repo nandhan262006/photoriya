@@ -1,9 +1,3 @@
-/**
- * Shared building blocks for event templates: default pricing tables, album
- * defaults, and helpers that emit declarative deliverable / recommendation
- * rules. Templates compose these so per-event files stay focused on what is
- * actually different (sub-events, offered options, overrides).
- */
 import type {
   AlbumDefaults,
   DeliverableRule,
@@ -15,50 +9,47 @@ import type {
 export const DEFAULT_MAX_REELS = 3;
 
 export const DEFAULT_COVERAGE_PRICES: Record<ID, PriceRange> = {
-  traditional_photography: { min: 8000, max: 15000 },
-  traditional_videography: { min: 12000, max: 20000 },
-  candid_photography: { min: 25000, max: 45000 },
-  cinematic_videography: { min: 35000, max: 60000 },
-  drone: { min: 15000, max: 25000 },
+  traditional_photography: { value: 12000 },
+  traditional_videography: { value: 16000 },
+  candid_photography: { value: 35000 },
+  cinematic_videography: { value: 45000 },
+  drone: { value: 20000 },
 };
 
 export const DEFAULT_ADDON_PRICES: Record<ID, PriceRange> = {
-  led_screen: { min: 25000, max: 40000 },
-  live_streaming: { min: 15000, max: 25000 },
-  crane: { min: 20000, max: 35000 },
-  booth_360: { min: 18000, max: 30000 },
-  instant_prints: { min: 8000, max: 15000 },
-  photobooth: { min: 12000, max: 20000 },
-  same_day_edit: { min: 20000, max: 35000 },
+  led_screen: { value: 25000 },
+  live_streaming: { value: 15000 },
+  ai_gallery: { value: 25000 },
+  instant_teaser: { value: 20000 },
 };
 
-export const DEFAULT_REEL_PRICE: PriceRange = { min: 4000, max: 8000 };
+export const DEFAULT_REEL_PRICE: PriceRange = { value: 6000 };
 
 export const ALBUM_DEFAULTS: AlbumDefaults = {
   types: [
     {
       id: "magazine",
       name: "Magazine Album",
-      basePrice: { min: 15000, max: 22000 },
-      perPagePrice: { min: 120, max: 200 },
+      basePrice: { value: 18000 },
+      perPagePrice: { value: 150 },
     },
     {
       id: "premium",
       name: "Premium Photographic",
-      basePrice: { min: 18000, max: 25000 },
-      perPagePrice: { min: 150, max: 250 },
+      basePrice: { value: 22000 },
+      perPagePrice: { value: 200 },
     },
     {
       id: "layflat",
       name: "Layflat Album",
-      basePrice: { min: 28000, max: 40000 },
-      perPagePrice: { min: 300, max: 500 },
+      basePrice: { value: 32000 },
+      perPagePrice: { value: 400 },
     },
     {
       id: "coffee_table",
       name: "Coffee Table Album",
-      basePrice: { min: 35000, max: 55000 },
-      perPagePrice: { min: 400, max: 700 },
+      basePrice: { value: 45000 },
+      perPagePrice: { value: 550 },
     },
   ],
   sizes: [
@@ -83,18 +74,14 @@ const COVERAGE_DELIVERABLE_LABELS: Record<ID, string> = {
 const ADDON_DELIVERABLE_LABELS: Record<ID, string> = {
   led_screen: "Live LED screen playback at the venue",
   live_streaming: "Live stream link for remote guests",
-  crane: "Cine crane cinematic shots",
-  booth_360: "360\u00b0 booth clips for guests",
-  instant_prints: "Instant printed photos for guests",
-  photobooth: "Photo booth prints with props",
-  same_day_edit: "Same-day highlight edit screened at the event",
+  ai_gallery: "AI-curated event gallery",
+  instant_teaser: "Instant teaser highlight or same-day edit",
 };
 
 const DELIVERABLE_GROUP_COVERAGE = "Photography & Videography";
 const DELIVERABLE_GROUP_ADDONS = "Add-on Services";
 const DELIVERABLE_GROUP_EXTRAS = "Reels & Albums";
 
-/** Build the standard deliverable rules for a set of coverage + add-on ids. */
 export function deliverableRulesFor(
   coverageIds: ID[],
   addonIds: ID[],
@@ -150,10 +137,6 @@ export function deliverableRulesFor(
   return rules;
 }
 
-/**
- * Common smart recommendations used across event types. Each is declarative so
- * it remains serializable for a future CMS-backed template builder.
- */
 export function commonRecommendations(): RecommendationRule[] {
   return [
     {
@@ -170,9 +153,9 @@ export function commonRecommendations(): RecommendationRule[] {
       requiresAnySubEvent: ["wedding", "reception", "wedding_day", "main", "party"],
     },
     {
-      id: "rec-same-day-edit",
-      suggest: { type: "addon", id: "same_day_edit" },
-      message: "A Same-Day Edit screened at the event is a guest favourite.",
+      id: "rec-instant-teaser",
+      suggest: { type: "addon", id: "instant_teaser" },
+      message: "An Instant Teaser or Same-Day Edit screened at the event is a guest favourite.",
       requiresAnySubEvent: ["wedding", "reception", "wedding_day", "main"],
     },
     {

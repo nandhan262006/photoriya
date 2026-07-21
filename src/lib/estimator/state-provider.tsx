@@ -3,10 +3,8 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useMemo,
   useReducer,
-  useRef,
   type ReactNode,
 } from "react";
 import type {
@@ -25,12 +23,9 @@ import {
   type EstimatorAction,
 } from "./state";
 
-const STORAGE_KEY = "photriya-estimator-state-v1";
-
 const EMPTY_ESTIMATE: EstimateBreakdown = {
   items: [],
-  subtotal: { min: 0, max: 0 },
-  total: { min: 0, max: 0 },
+  total: 0,
   subEventCount: 0,
   isEmpty: true,
 };
@@ -55,48 +50,6 @@ export function EstimatorProvider({
   children: ReactNode;
 }) {
   const [state, dispatch] = useReducer(estimatorReducer, initialState);
-  // A ref gates persistence so we don't clobber saved state before
-  // rehydration. Using a ref (not state) avoids setState-in-effect.
-  const hydratedRef = useRef(false);
-  // Skips the very first persist run (state is still initialState).
-  const persistReadyRef = useRef(false);
-
-  // Rehydrate after mount to avoid SSR/CSR hydration mismatches.
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        const validTemplate = templates.find((t) => t.id === parsed.eventTypeId);
-        if (validTemplate) {
-          dispatch({
-            type: "HYDRATE",
-            state: { ...initialState, ...parsed } as EstimatorState,
-          });
-        } else {
-          window.localStorage.removeItem(STORAGE_KEY);
-        }
-      }
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
-    hydratedRef.current = true;
-  }, [templates]);
-
-  // Persist on change (only after initial rehydration and not on the
-  // very first render where state may still be the server initialState).
-  useEffect(() => {
-    if (!hydratedRef.current) return;
-    if (!persistReadyRef.current) {
-      persistReadyRef.current = true;
-      return;
-    }
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      /* ignore quota errors */
-    }
-  }, [state]);
 
   const template = useMemo(
     () => templates.find((t) => t.id === state.eventTypeId) ?? null,

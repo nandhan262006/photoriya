@@ -2,7 +2,7 @@
 
 import { ReceiptIndianRupee, Sparkles } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { formatRange, formatRangeShort } from "@/lib/estimator/format";
+import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
 const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
@@ -53,7 +53,7 @@ export function EstimatePanel({ compact = false }: { compact?: boolean }) {
               Estimated total (approx.)
             </span>
             <span className="font-heading text-xl font-semibold tabular-nums sm:text-2xl">
-              {formatRangeShort(estimate.total)}
+              {formatINR(estimate.total)}
             </span>
           </div>
         )}
@@ -82,7 +82,7 @@ export function EstimatePanel({ compact = false }: { compact?: boolean }) {
                       )}
                     </div>
                     <span className="shrink-0 tabular-nums text-muted-foreground">
-                      {formatRange({ min: item.min, max: item.max })}
+                      {formatINR(item.value)}
                     </span>
                   </div>
                 ))}

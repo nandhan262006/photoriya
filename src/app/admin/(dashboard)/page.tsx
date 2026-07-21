@@ -13,7 +13,7 @@ async function getStats() {
     totalBookings: bookings.length,
     confirmedBookings: confirmed.length,
     revenue: String(revenue),
-    recentBookings: bookings.slice(-5).reverse(),
+    recentBookings: bookings.slice(0, 5),
   };
 }
 
@@ -69,12 +69,23 @@ export default async function AdminDashboard() {
             </tr>
           </thead>
           <tbody>
-            {stats.recentBookings.length === 0 && (
+            {stats.recentBookings.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-6 text-center text-muted-foreground">
                   No bookings yet.
                 </td>
               </tr>
+            ) : (
+              stats.recentBookings.map((b: Record<string, unknown>) => (
+                <tr key={b.id as string} className="border-b">
+                  <td className="p-3 text-sm">{b.clientName as string}</td>
+                  <td className="p-3 text-sm">{(b.service as Record<string, unknown>)?.name as string}</td>
+                  <td className="p-3 text-sm">{(b.photographer as Record<string, unknown>)?.name as string}</td>
+                  <td className="p-3 text-sm">{b.bookingDate as string}</td>
+                  <td className="p-3 text-sm">{b.status as string}</td>
+                  <td className="p-3 text-sm">₹{Number(b.totalPrice || 0).toLocaleString("en-IN")}</td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>

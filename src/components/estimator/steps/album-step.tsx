@@ -2,7 +2,7 @@
 
 import { Images } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRangeShort } from "@/lib/estimator/format";
+import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 import { Stepper, ToggleChip } from "../primitives";
 
@@ -18,7 +18,7 @@ export function AlbumStep() {
       <header className="flex flex-col gap-1">
         <h1 className="font-heading text-2xl font-semibold">Albums</h1>
         <p className="text-sm text-muted-foreground">
-          Want printed albums? Configure size and quantity at ₹600 per page.
+          Want printed albums? Configure size and quantity.
         </p>
       </header>
 
@@ -107,7 +107,7 @@ export function AlbumStep() {
               <Images className="size-4 text-muted-foreground" />
               <span className="text-muted-foreground">Album estimate</span>
               <span className="ml-auto font-semibold tabular-nums">
-                {formatRangeShort({ min: albumItem.min, max: albumItem.max })}
+                {formatINR(albumItem.value)}
               </span>
             </div>
           ) : (

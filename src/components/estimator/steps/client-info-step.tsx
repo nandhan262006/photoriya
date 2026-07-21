@@ -49,14 +49,16 @@ export function ClientInfoStep() {
           <Input
             id="clientPhone"
             type="tel"
+            inputMode="numeric"
             required
-            placeholder="Enter your phone number"
+            maxLength={10}
+            placeholder="10-digit phone number"
             value={state.clientPhone}
             onChange={(e) =>
               dispatch({
                 type: "SET_CLIENT_INFO",
                 field: "clientPhone",
-                value: e.target.value,
+                value: e.target.value.replace(/\D/g, "").slice(0, 10),
               })
             }
           />

@@ -12,7 +12,7 @@ export default async function BookingPage() {
   ]);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex-1 flex flex-col">
       <header className="border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-2">
           <Link href="/" className="flex items-center">
@@ -22,7 +22,7 @@ export default async function BookingPage() {
           <span className="text-muted-foreground">Book a Session</span>
         </div>
       </header>
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-4 flex-1">
         <BookingFlow services={services} photographers={photographers} />
       </main>
     </div>

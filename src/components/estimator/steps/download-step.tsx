@@ -5,20 +5,30 @@ import { Download, Loader2, RotateCcw, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatRange, formatRangeShort } from "@/lib/estimator/format";
+import { formatINR } from "@/lib/estimator/format";
 import { downloadEstimatePdf } from "@/lib/estimator/pdf-client";
+import { saveEstimateLead } from "@/lib/estimator/lead-actions";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
 const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
 
 export function DownloadStep() {
-  const { state, estimate, deliverables, dispatch } = useEstimator();
+  const { state, estimate, deliverables, dispatch, template } = useEstimator();
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
     if (estimate.isEmpty) return;
     setDownloading(true);
     try {
+      if (state.clientName && state.clientPhone) {
+        saveEstimateLead({
+          clientName: state.clientName,
+          clientPhone: state.clientPhone,
+          eventType: state.eventTypeId ?? "",
+          eventName: template?.name ?? "",
+          estimateData: JSON.stringify(state),
+        }).catch(() => {});
+      }
       await downloadEstimatePdf(state);
       toast.success("Your estimate PDF is downloading.");
     } catch {
@@ -58,7 +68,7 @@ export function DownloadStep() {
               Estimated total
             </span>
             <div className="mt-1 font-heading text-2xl font-semibold tabular-nums sm:text-3xl">
-              {formatRangeShort(estimate.total)}
+              {formatINR(estimate.total)}
             </div>
             {estimate.subEventCount > 0 && (
               <span className="mt-2 inline-block text-sm text-muted-foreground">
@@ -91,7 +101,7 @@ export function DownloadStep() {
                           )}
                         </div>
                         <span className="shrink-0 tabular-nums text-muted-foreground">
-                          {formatRange({ min: item.min, max: item.max })}
+                          {formatINR(item.value)}
                         </span>
                       </div>
                     ))}

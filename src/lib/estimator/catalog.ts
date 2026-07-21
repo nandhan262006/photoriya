@@ -54,34 +54,16 @@ export const ADD_ON_OPTIONS: AddOnOption[] = [
     description: "Broadcast the event live for remote family and friends.",
   },
   {
-    id: "crane",
-    label: "Crane",
-    icon: "crane",
-    description: "Cine crane for sweeping, elevated motion shots.",
-  },
-  {
-    id: "booth_360",
-    label: "360 Booth",
-    icon: "rotate",
-    description: "360° video booth experience for guests.",
-  },
-  {
-    id: "instant_prints",
-    label: "Instant Prints",
-    icon: "printer",
-    description: "On-the-spot printed photos for guests to take home.",
-  },
-  {
-    id: "photobooth",
-    label: "Photo Booth",
-    icon: "smile",
-    description: "Classic photo booth with props and prints.",
-  },
-  {
-    id: "same_day_edit",
-    label: "Same-Day Edit",
+    id: "ai_gallery",
+    label: "AI Gallery",
     icon: "wand",
-    description: "A quick highlight edit screened at the event itself.",
+    description: "AI-powered event gallery with smart photo curation.",
+  },
+  {
+    id: "instant_teaser",
+    label: "Instant Teaser or Same-Day Teaser",
+    icon: "film",
+    description: "A quick highlight teaser or same-day edit screened at the event.",
   },
 ];
 

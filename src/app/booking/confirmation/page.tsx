@@ -2,13 +2,13 @@ import Link from "next/link";
 
 export default function ConfirmationPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="flex-1 flex items-center justify-center">
       <div className="text-center max-w-md mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-2">Booking Confirmed!</h1>
-        <p className="text-muted-foreground mb-2">
+        <h1 className="text-2xl font-bold mb-1">Booking Confirmed!</h1>
+        <p className="text-muted-foreground mb-1">
           Your photography session has been booked successfully.
         </p>
-        <p className="text-sm text-muted-foreground mb-8">
+        <p className="text-sm text-muted-foreground mb-4">
           Our team will reach out to you shortly to confirm the details.
         </p>
         <div className="flex gap-4 justify-center">

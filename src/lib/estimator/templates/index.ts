@@ -1,12 +1,13 @@
 import type { EventTemplate, ID, PriceRange } from "../types";
 import { prisma } from "@/lib/prisma";
+import { deliverableRulesFor, commonRecommendations } from "./shared";
 
 const ALBUM_DEFAULTS = {
   types: [
-    { id: "magazine", name: "Magazine Album", basePrice: { min: 15000, max: 22000 }, perPagePrice: { min: 120, max: 200 } },
-    { id: "premium", name: "Premium Photographic", basePrice: { min: 18000, max: 25000 }, perPagePrice: { min: 150, max: 250 } },
-    { id: "layflat", name: "Layflat Album", basePrice: { min: 28000, max: 40000 }, perPagePrice: { min: 300, max: 500 } },
-    { id: "coffee_table", name: "Coffee Table Album", basePrice: { min: 35000, max: 55000 }, perPagePrice: { min: 400, max: 700 } },
+    { id: "magazine", name: "Magazine Album", basePrice: { value: 18000 }, perPagePrice: { value: 150 } },
+    { id: "premium", name: "Premium Photographic", basePrice: { value: 22000 }, perPagePrice: { value: 200 } },
+    { id: "layflat", name: "Layflat Album", basePrice: { value: 32000 }, perPagePrice: { value: 400 } },
+    { id: "coffee_table", name: "Coffee Table Album", basePrice: { value: 45000 }, perPagePrice: { value: 550 } },
   ],
   sizes: [
     { id: "12x36", name: '12" × 36"', multiplier: 1.0 },
@@ -20,21 +21,18 @@ const ALBUM_DEFAULTS = {
 };
 
 const DEFAULT_COVERAGE_PRICES: Record<ID, PriceRange> = {
-  traditional_photography: { min: 8000, max: 15000 },
-  traditional_videography: { min: 12000, max: 20000 },
-  candid_photography: { min: 25000, max: 45000 },
-  cinematic_videography: { min: 35000, max: 60000 },
-  drone: { min: 15000, max: 25000 },
+  traditional_photography: { value: 12000 },
+  traditional_videography: { value: 16000 },
+  candid_photography: { value: 35000 },
+  cinematic_videography: { value: 45000 },
+  drone: { value: 20000 },
 };
 
 const DEFAULT_ADDON_PRICES: Record<ID, PriceRange> = {
-  led_screen: { min: 25000, max: 40000 },
-  live_streaming: { min: 15000, max: 25000 },
-  crane: { min: 20000, max: 35000 },
-  booth_360: { min: 18000, max: 30000 },
-  instant_prints: { min: 8000, max: 15000 },
-  photobooth: { min: 12000, max: 20000 },
-  same_day_edit: { min: 20000, max: 35000 },
+  led_screen: { value: 25000 },
+  live_streaming: { value: 15000 },
+  ai_gallery: { value: 25000 },
+  instant_teaser: { value: 20000 },
 };
 
 async function loadDbTemplates(): Promise<EventTemplate[]> {
@@ -50,6 +48,16 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
     return dbTemplates.map((t) => {
       const coverageOptions: ID[] = safeJson<ID[]>(t.coverageOptions) ?? [];
       const addOnOptions: ID[] = safeJson<ID[]>(t.addOnOptions) ?? [];
+      const defaultPrices: Record<string, Record<string, number>> = safeJson(t.defaultPrices) ?? {};
+
+      function toPriceRange(map: Record<string, number> | undefined): Record<ID, PriceRange> {
+        const result: Record<ID, PriceRange> = {};
+        if (!map) return result;
+        for (const [key, val] of Object.entries(map)) {
+          result[key] = { value: val };
+        }
+        return result;
+      }
 
       return {
         id: t.typeId,
@@ -59,9 +67,13 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         icon: t.icon,
         coverageOptions,
         addOnOptions,
-        defaultCoveragePrices: DEFAULT_COVERAGE_PRICES,
-        defaultAddOnPrices: DEFAULT_ADDON_PRICES,
-        defaultReelPrice: { min: t.defaultReelMin, max: t.defaultReelMax },
+        defaultCoveragePrices: Object.keys(toPriceRange(defaultPrices.coverage)).length
+          ? toPriceRange(defaultPrices.coverage)
+          : DEFAULT_COVERAGE_PRICES,
+        defaultAddOnPrices: Object.keys(toPriceRange(defaultPrices.addOns)).length
+          ? toPriceRange(defaultPrices.addOns)
+          : DEFAULT_ADDON_PRICES,
+        defaultReelPrice: { value: Math.round((t.defaultReelMin + t.defaultReelMax) / 2) },
         defaultMaxReels: t.defaultMaxReels,
         subEvents: t.subEvents.map((se) => {
           const overrides: Record<string, unknown> = safeJson<Record<string, unknown>>(se.priceOverrides) ?? {};
@@ -77,8 +89,8 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
           };
         }),
         album: ALBUM_DEFAULTS,
-        deliverableRules: [],
-        recommendationRules: [],
+        deliverableRules: deliverableRulesFor(coverageOptions, addOnOptions),
+        recommendationRules: commonRecommendations(),
       };
     });
   } catch {
@@ -90,21 +102,12 @@ function safeJson<T>(val: string): T | null {
   try { return JSON.parse(val) as T; } catch { return null; }
 }
 
-let cachedDbTemplates: EventTemplate[] | null = null;
-
 export async function loadTemplates(): Promise<EventTemplate[]> {
-  if (!cachedDbTemplates) {
-    cachedDbTemplates = await loadDbTemplates();
-  }
-  return cachedDbTemplates;
+  return loadDbTemplates();
 }
 
 export async function loadTemplate(id: ID | null): Promise<EventTemplate | null> {
   if (!id) return null;
   const all = await loadTemplates();
   return all.find((t) => t.id === id) ?? null;
-}
-
-export function invalidateCache() {
-  cachedDbTemplates = null;
 }

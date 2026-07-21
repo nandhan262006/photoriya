@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatRangeCompact } from "@/lib/estimator/format";
+import { formatINR } from "@/lib/estimator/format";
 import { maxReelsFor } from "@/lib/estimator/state";
 import { useEstimator } from "@/lib/estimator/state-provider";
 import type { EventTemplate, ID, PriceRange } from "@/lib/estimator/types";
@@ -83,7 +83,7 @@ export function ReelsStep() {
                       Number of reels
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {formatRangeCompact(reelPrice(template, subId))} / reel
+                      {formatINR(reelPrice(template, subId).value)} / reel
                     </span>
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1">

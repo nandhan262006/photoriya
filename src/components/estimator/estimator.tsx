@@ -43,9 +43,10 @@ function EstimatorShell() {
       case 2:
         return state.selectedSubEvents.length > 0;
       case 3: {
-        const firstSubId = state.selectedSubEvents[0];
-        const firstConfig = firstSubId ? state.subEventConfig[firstSubId] : null;
-        return firstConfig ? firstConfig.coverage.length > 0 : false;
+        return state.selectedSubEvents.some((id) => {
+          const cfg = state.subEventConfig[id];
+          return cfg && cfg.coverage.length > 0;
+        });
       }
       default:
         return true;
@@ -60,7 +61,7 @@ function EstimatorShell() {
     dispatch({ type: "SET_STEP", step: Math.min(lastStep, state.step + 1) });
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link
@@ -77,7 +78,7 @@ function EstimatorShell() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:py-10">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-2 overflow-y-auto">
         <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:gap-8">
           <div className="min-w-0 overflow-hidden">
             <StepNav />

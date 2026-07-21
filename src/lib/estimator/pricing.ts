@@ -1,11 +1,3 @@
-/**
- * Pure, isomorphic pricing engine.
- *
- * `calculateEstimate` takes the current state and the selected template and
- * returns a fully derived estimate. It has no React and no I/O, so it runs
- * identically in the browser (live panel) and on the server (PDF). This is
- * what guarantees the live total and the downloaded PDF can never disagree.
- */
 import type {
   EstimateBreakdown,
   EventTemplate,
@@ -31,15 +23,6 @@ function reelPrice(template: EventTemplate, subEventId: ID): PriceRange {
   return sub?.reel ?? template.defaultReelPrice;
 }
 
-function multiply(range: PriceRange, factor: number): PriceRange {
-  return { min: range.min * factor, max: range.max * factor };
-}
-
-function add(into: PriceRange, range: PriceRange): void {
-  into.min += range.min;
-  into.max += range.max;
-}
-
 function subEventName(template: EventTemplate, id: ID): string {
   return template.subEvents.find((s) => s.id === id)?.name ?? id;
 }
@@ -49,7 +32,7 @@ export function calculateEstimate(
   template: EventTemplate,
 ): EstimateBreakdown {
   const items: LineItem[] = [];
-  const subtotal: PriceRange = { min: 0, max: 0 };
+  let total = 0;
   let subEventCount = 0;
 
   const validCoverage = new Set(template.coverageOptions);
@@ -74,10 +57,9 @@ export function calculateEstimate(
         group: "Coverage",
         label: labelForCoverage(coverageId),
         detail: name,
-        min: price.min,
-        max: price.max,
+        value: price.value,
       });
-      add(subtotal, price);
+      total += price.value;
     }
 
     for (const addOnId of template.addOnOptions) {
@@ -90,23 +72,21 @@ export function calculateEstimate(
         group: "Add-on Services",
         label: labelForAddOn(addOnId),
         detail: name,
-        min: price.min,
-        max: price.max,
+        value: price.value,
       });
-      add(subtotal, price);
+      total += price.value;
     }
 
     if (cfg.reels > 0) {
-      const price = multiply(reelPrice(template, subEventId), cfg.reels);
+      const price = reelPrice(template, subEventId);
       items.push({
         id: `reels-${subEventId}`,
         group: "Reels",
         label: `${cfg.reels} Instagram reel${cfg.reels > 1 ? "s" : ""}`,
         detail: name,
-        min: price.min,
-        max: price.max,
+        value: price.value * cfg.reels,
       });
-      add(subtotal, price);
+      total += price.value * cfg.reels;
     }
   }
 
@@ -116,21 +96,18 @@ export function calculateEstimate(
     const size = template.album.sizes.find((s) => s.id === albumState.sizeId);
     if (size) {
       const pages = albumState.pages;
-      const perPage = 600;
-      const perAlbum: PriceRange = {
-        min: pages * perPage * size.multiplier,
-        max: pages * perPage * size.multiplier,
-      };
-      const total = multiply(perAlbum, albumState.count);
+      const albumType = template.album.types.find((t) => t.id === albumState.typeId);
+      const perPagePrice = albumType?.perPagePrice ?? { value: 600 };
+      const perAlbum = pages * perPagePrice.value * size.multiplier;
+      const albumTotal = perAlbum * albumState.count;
       items.push({
         id: "album",
         group: "Albums",
         label: `${albumState.count} album${albumState.count > 1 ? "s" : ""}`,
         detail: `${size.name}, ${pages} pages each`,
-        min: total.min,
-        max: total.max,
+        value: albumTotal,
       });
-      add(subtotal, total);
+      total += albumTotal;
     }
   }
 
@@ -138,15 +115,12 @@ export function calculateEstimate(
 
   return {
     items,
-    subtotal,
-    total: { min: subtotal.min, max: subtotal.max },
+    total,
     subEventCount,
     isEmpty,
   };
 }
 
-/* Icon-key -> human label mirrors kept here so the engine output is readable
- * without importing the catalog (keeps the engine dependency-free). */
 const COVERAGE_LABELS: Record<ID, string> = {
   traditional_photography: "Traditional Photography",
   traditional_videography: "Traditional Videography",
@@ -158,11 +132,8 @@ const COVERAGE_LABELS: Record<ID, string> = {
 const ADDON_LABELS: Record<ID, string> = {
   led_screen: "LED Screen",
   live_streaming: "Live Streaming",
-  crane: "Crane",
-  booth_360: "360 Booth",
-  instant_prints: "Instant Prints",
-  photobooth: "Photo Booth",
-  same_day_edit: "Same-Day Edit",
+  ai_gallery: "AI Gallery",
+  instant_teaser: "Instant Teaser or Same-Day Teaser",
 };
 
 function labelForCoverage(id: ID): string {

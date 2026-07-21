@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { defaultSubEventsFor } from "@/lib/estimator/state";
 import { useEstimator } from "@/lib/estimator/state-provider";
@@ -12,11 +11,7 @@ export function EventTypeStep() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const selectedId = state.eventTypeId;
 
-  const toggleExpand = (id: string) => {
-    setExpanded((prev) => (prev === id ? null : id));
-  };
-
-  const confirm = (id: string) => {
+  const select = (id: string) => {
     const template = templates.find((t) => t.id === id);
     if (!template) return;
     dispatch({
@@ -25,7 +20,7 @@ export function EventTypeStep() {
       defaultSubEvents: defaultSubEventsFor(template),
       albumBasePages: template.album.basePages,
     });
-    dispatch({ type: "SET_STEP", step: 2 });
+    setExpanded(id);
   };
 
   return (
@@ -47,7 +42,7 @@ export function EventTypeStep() {
             <button
               key={t.id}
               type="button"
-              onClick={() => toggleExpand(t.id)}
+              onClick={() => select(t.id)}
               aria-expanded={isExpanded}
               className={cn(
                 "relative inline-flex items-center gap-2 rounded-[9999px] border px-4 py-2 text-sm transition-all duration-300",
@@ -79,31 +74,17 @@ export function EventTypeStep() {
         })}
       </div>
 
-      {expanded && (
-        <div className="rounded-xl border border-border bg-muted/30 p-4">
-          {(() => {
-            const t = templates.find((tpl) => tpl.id === expanded);
-            if (!t) return null;
-            const isCurrentlySelected = selectedId === t.id;
-            return (
-              <>
-                {(t.description || t.tagline) && (
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {t.description || t.tagline}
-                  </p>
-                )}
-                <span
-                  onClick={() => confirm(t.id)}
-                  className="mt-3 inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-primary hover:underline"
-                >
-                  {isCurrentlySelected ? "Change to this" : "Select"}
-                  <ArrowRight className="size-3.5" />
-                </span>
-              </>
-            );
-          })()}
-        </div>
-      )}
+      {(() => {
+        const t = expanded ? templates.find((tpl) => tpl.id === expanded) : null;
+        if (!t || !(t.description || t.tagline)) return null;
+        return (
+          <div className="rounded-xl border border-border bg-muted/30 p-4">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {t.description || t.tagline}
+            </p>
+          </div>
+        );
+      })()}
     </section>
   );
 }

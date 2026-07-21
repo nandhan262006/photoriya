@@ -1,7 +1,13 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { invalidateCache } from "@/lib/estimator/templates";
+import { auth } from "@/lib/auth";
+
+async function requireAdmin() {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+}
 
 function getDb() {
   if (!prisma) throw new Error("Database not configured");
@@ -9,6 +15,7 @@ function getDb() {
 }
 
 export async function getTemplates() {
+  await requireAdmin();
   const db = getDb();
   return db.eventTemplate.findMany({
     include: { subEvents: { orderBy: { sortOrder: "asc" } } },
@@ -17,6 +24,7 @@ export async function getTemplates() {
 }
 
 export async function getTemplate(id: number) {
+  await requireAdmin();
   const db = getDb();
   return db.eventTemplate.findUnique({
     where: { id },
@@ -37,44 +45,33 @@ export async function upsertTemplate(data: {
   defaultReelMax: number;
   coverageOptions: string[];
   addOnOptions: string[];
+  defaultPrices?: string;
 }) {
+  await requireAdmin();
   const db = getDb();
+  const payload: Record<string, unknown> = {
+    typeId: data.typeId,
+    name: data.name,
+    tagline: data.tagline,
+    description: data.description,
+    icon: data.icon,
+    isActive: data.isActive,
+    defaultMaxReels: data.defaultMaxReels,
+    defaultReelMin: data.defaultReelMin,
+    defaultReelMax: data.defaultReelMax,
+    coverageOptions: JSON.stringify(data.coverageOptions),
+    addOnOptions: JSON.stringify(data.addOnOptions),
+  };
+  if (data.defaultPrices !== undefined) {
+    payload.defaultPrices = data.defaultPrices;
+  }
   let result;
   if (data.id) {
-    result = await db.eventTemplate.update({
-      where: { id: data.id },
-      data: {
-        typeId: data.typeId,
-        name: data.name,
-        tagline: data.tagline,
-        description: data.description,
-        icon: data.icon,
-        isActive: data.isActive,
-        defaultMaxReels: data.defaultMaxReels,
-        defaultReelMin: data.defaultReelMin,
-        defaultReelMax: data.defaultReelMax,
-        coverageOptions: JSON.stringify(data.coverageOptions),
-        addOnOptions: JSON.stringify(data.addOnOptions),
-      },
-    });
+    result = await db.eventTemplate.update({ where: { id: data.id }, data: payload });
   } else {
-    result = await db.eventTemplate.create({
-      data: {
-        typeId: data.typeId,
-        name: data.name,
-        tagline: data.tagline,
-        description: data.description,
-        icon: data.icon,
-        isActive: data.isActive,
-        defaultMaxReels: data.defaultMaxReels,
-        defaultReelMin: data.defaultReelMin,
-        defaultReelMax: data.defaultReelMax,
-        coverageOptions: JSON.stringify(data.coverageOptions),
-        addOnOptions: JSON.stringify(data.addOnOptions),
-      },
-    });
+    result = await db.eventTemplate.create({ data: payload as never });
   }
-  invalidateCache();
+  revalidatePath("/admin/templates");
   return result;
 }
 
@@ -89,6 +86,7 @@ export async function upsertSubEvent(data: {
   priceOverrides: Record<string, unknown>;
   templateId: number;
 }) {
+  await requireAdmin();
   const db = getDb();
   const payload = {
     subEventId: data.subEventId,
@@ -106,20 +104,22 @@ export async function upsertSubEvent(data: {
   } else {
     result = await db.subEvent.create({ data: payload });
   }
-  invalidateCache();
+  revalidatePath("/admin/templates");
   return result;
 }
 
 export async function deleteSubEvent(id: number) {
+  await requireAdmin();
   const db = getDb();
   const result = await db.subEvent.delete({ where: { id } });
-  invalidateCache();
+  revalidatePath("/admin/templates");
   return result;
 }
 
 export async function deleteTemplate(id: number) {
+  await requireAdmin();
   const db = getDb();
   const result = await db.eventTemplate.delete({ where: { id } });
-  invalidateCache();
+  revalidatePath("/admin/templates");
   return result;
 }

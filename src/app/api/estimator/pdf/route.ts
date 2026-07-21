@@ -11,48 +11,52 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
-  let body: { state: unknown };
   try {
-    body = await request.json();
-  } catch {
-    return new Response("Invalid JSON body", { status: 400 });
+    let body: { state: unknown };
+    try {
+      body = await request.json();
+    } catch {
+      return new Response("Invalid JSON body", { status: 400 });
+    }
+
+    if (!body?.state || typeof body.state !== "object") {
+      return new Response("Missing state", { status: 400 });
+    }
+
+    const rawState = body.state as Partial<EstimatorState>;
+    if (typeof rawState.eventTypeId !== "string") {
+      return new Response("Missing eventTypeId", { status: 400 });
+    }
+
+    const templates = await loadTemplates();
+    const template = templates.find((t) => t.id === rawState.eventTypeId);
+    if (!template) {
+      return new Response("Unknown event type", { status: 400 });
+    }
+
+    const state = sanitizeState(body.state, template);
+    const estimate = calculateEstimate(state, template);
+    if (estimate.isEmpty) {
+      return new Response("Nothing selected to estimate", { status: 400 });
+    }
+    const deliverables = generateDeliverables(state, template);
+
+    const pdf = await renderEstimatePdf({
+      template,
+      state,
+      estimate,
+      deliverables,
+    });
+
+    return new Response(new Uint8Array(pdf), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="photriya-estimate.pdf"',
+      },
+    });
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    return new Response("Internal server error", { status: 500 });
   }
-
-  if (!body?.state || typeof body.state !== "object") {
-    return new Response("Missing state", { status: 400 });
-  }
-
-  const rawState = body.state as Partial<EstimatorState>;
-  if (typeof rawState.eventTypeId !== "string") {
-    return new Response("Missing eventTypeId", { status: 400 });
-  }
-
-  const templates = await loadTemplates();
-  const template = templates.find((t) => t.id === rawState.eventTypeId);
-  if (!template) {
-    return new Response("Unknown event type", { status: 400 });
-  }
-
-  // Re-validate and clamp on the server before trusting any figure.
-  const state = sanitizeState(body.state, template);
-  const estimate = calculateEstimate(state, template);
-  if (estimate.isEmpty) {
-    return new Response("Nothing selected to estimate", { status: 400 });
-  }
-  const deliverables = generateDeliverables(state, template);
-
-  const pdf = await renderEstimatePdf({
-    template,
-    state,
-    estimate,
-    deliverables,
-  });
-
-  return new Response(new Uint8Array(pdf), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="photriya-estimate.pdf"',
-    },
-  });
 }

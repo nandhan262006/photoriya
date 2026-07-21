@@ -93,19 +93,16 @@ export function calculateEstimate(
 
   // Album
   const albumState = state.album;
-  if (albumState.required && albumState.sizeId && albumState.typeId) {
+  if (albumState.required && albumState.sizeId) {
     const size = template.album.sizes.find((s) => s.id === albumState.sizeId);
-    const albumType = template.album.types.find((t) => t.id === albumState.typeId);
-    if (size && albumType) {
-      const pages = albumState.pages;
-      const extraPages = Math.max(0, pages - template.album.basePages);
-      const perAlbum = (albumType.basePrice.value + extraPages * albumType.perPagePrice.value) * size.multiplier;
+    if (size) {
+      const perAlbum = albumState.pages * size.multiplier * 600;
       const albumTotal = perAlbum * albumState.count;
       items.push({
         id: "album",
         group: "Albums",
         label: `${albumState.count} album${albumState.count > 1 ? "s" : ""}`,
-        detail: `${albumType.name}, ${size.name}, ${pages} pages each`,
+        detail: `${size.name}, ${albumState.pages} pages each`,
         value: albumTotal,
       });
       total += albumTotal;

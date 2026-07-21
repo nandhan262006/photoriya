@@ -55,29 +55,6 @@ export function AlbumStep() {
         <div className="flex flex-col gap-5 rounded-xl border p-4">
           <div className="flex flex-col gap-2">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Album type
-            </span>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {template.album.types.map((t) => (
-                <ToggleChip
-                  key={t.id}
-                  label={t.name}
-                  selected={album.typeId === t.id}
-                  priceLabel={formatINR(t.perPagePrice.value) + "/pg"}
-                  onClick={() =>
-                    dispatch({
-                      type: "SET_ALBUM_FIELD",
-                      field: "typeId",
-                      value: t.id,
-                    })
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Album size
             </span>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -135,7 +112,7 @@ export function AlbumStep() {
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Select an album type and size to see the price.
+              Select an album size to see the price.
             </p>
           )}
         </div>

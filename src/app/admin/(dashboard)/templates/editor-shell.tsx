@@ -69,7 +69,7 @@ const ADDON_LABELS: Record<string, string> = {
 
 const ICONS = ["heart", "cake", "flower", "baby", "home", "gift", "camera"];
 
-type Tab = "events" | "subevents" | "coverage" | "addons" | "reels" | "prices";
+type Tab = "events" | "subevents" | "reels" | "prices";
 
 export function EditorShell({ templates }: { templates: Template[] }) {
   const [tab, setTab] = useState<Tab>("events");
@@ -78,7 +78,7 @@ export function EditorShell({ templates }: { templates: Template[] }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-1 border-b pb-1">
-        {(["events", "subevents", "coverage", "addons", "reels", "prices"] as Tab[]).map((t) => (
+        {(["events", "subevents", "reels", "prices"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -90,9 +90,7 @@ export function EditorShell({ templates }: { templates: Template[] }) {
           >
             {t === "events" ? "1. Event Types" :
              t === "subevents" ? "2. Sub-Events" :
-             t === "coverage" ? "3. Coverage Prices" :
-             t === "addons" ? "4. Add-on Prices" :
-             t === "reels" ? "5. Reels & Albums" : "6. Default Prices"}
+             t === "reels" ? "3. Reels & Albums" : "4. Default Prices"}
           </button>
         ))}
       </div>
@@ -100,20 +98,6 @@ export function EditorShell({ templates }: { templates: Template[] }) {
       {tab === "events" && <EventsEditor templates={templates} />}
       {tab === "subevents" && (
         <SubEventsEditor
-          templates={templates}
-          selectedTemplate={selectedTemplate}
-          onSelectTemplate={setSelectedTemplate}
-        />
-      )}
-      {tab === "coverage" && (
-        <CoverageEditor
-          templates={templates}
-          selectedTemplate={selectedTemplate}
-          onSelectTemplate={setSelectedTemplate}
-        />
-      )}
-      {tab === "addons" && (
-        <AddOnEditor
           templates={templates}
           selectedTemplate={selectedTemplate}
           onSelectTemplate={setSelectedTemplate}
@@ -344,249 +328,6 @@ function SubEventsEditor({
             ))}
           </div>
         </>
-      )}
-    </div>
-  );
-}
-
-function CoverageEditor({
-  templates, selectedTemplate, onSelectTemplate,
-}: {
-  templates: Template[];
-  selectedTemplate: number | null;
-  onSelectTemplate: (id: number | null) => void;
-}) {
-  const router = useRouter();
-  const tmpl = templates.find((t) => t.id === selectedTemplate);
-
-  const [prices, setPrices] = useState<Record<number, Record<string, string>>>({});
-
-  const loadPrices = (seId: number) => {
-    const se = tmpl?.subEvents.find((s) => s.id === seId);
-    if (!se) return {};
-    try {
-      const parsed = JSON.parse(se.priceOverrides);
-      const result: Record<string, string> = {};
-      if (parsed.coverage) {
-        for (const [key, val] of Object.entries(parsed.coverage as Record<string, { value: number }>)) {
-          result[key] = String((val as { value: number }).value);
-        }
-      }
-      return result;
-    } catch { return {}; }
-  };
-
-  useEffect(() => {
-    if (!tmpl) { setPrices({}); return; }
-    const all: Record<number, Record<string, string>> = {};
-    for (const se of tmpl.subEvents) {
-      all[se.id] = loadPrices(se.id);
-    }
-    setPrices(all);
-  }, [selectedTemplate, templates]);
-
-  const saveRow = async (seId: number) => {
-    if (!selectedTemplate) return;
-    const se = tmpl?.subEvents.find((s) => s.id === seId);
-    if (!se) return;
-    const row = prices[seId] ?? {};
-    const coverage: Record<string, { value: number }> = {};
-    for (const cid of COVERAGE_IDS) {
-      if (row[cid] !== undefined && row[cid] !== "") {
-        coverage[cid] = { value: Number(row[cid]) || 0 };
-      }
-    }
-    let overrides: Record<string, unknown> = {};
-    try { overrides = JSON.parse(se.priceOverrides); } catch {}
-    overrides.coverage = coverage;
-    try {
-      await upsertSubEvent({
-        id: seId, subEventId: se.subEventId, name: se.name,
-        description: se.description, defaultSelected: se.defaultSelected,
-        maxReels: se.maxReels, sortOrder: se.sortOrder,
-        priceOverrides: overrides, templateId: selectedTemplate,
-      });
-      toast.success("Saved");
-      router.refresh();
-    } catch {
-      toast.error("Failed to save");
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex gap-2 flex-wrap">
-        {templates.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => onSelectTemplate(t.id)}
-            className={`rounded-[9999px] border px-3 py-1 text-sm transition-colors ${
-              selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
-            }`}
-          >
-            {t.name}
-          </button>
-        ))}
-      </div>
-
-      {tmpl && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-muted-foreground text-xs">
-                <th className="p-2 text-left font-medium">Sub-Event</th>
-                {COVERAGE_IDS.map((cid) => (
-                  <th key={cid} className="p-2 text-left font-medium min-w-[140px]">{COVERAGE_LABELS[cid]}</th>
-                ))}
-                <th className="p-2 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tmpl.subEvents.map((se) => {
-                const row = prices[se.id] ?? {};
-                return (
-                  <tr key={se.id} className="border-b">
-                    <td className="p-2 font-medium text-sm">{se.name}</td>
-                    {COVERAGE_IDS.map((cid) => (
-                      <td key={cid} className="p-1">
-                        <Input
-                          size={1}
-                          className="h-7 w-24 text-xs"
-                          placeholder="Price"
-                          value={row[cid] ?? ""}
-                          onChange={(e) => setPrices({
-                            ...prices,
-                            [se.id]: { ...(prices[se.id] ?? {}), [cid]: e.target.value },
-                          })}
-                        />
-                      </td>
-                    ))}
-                    <td className="p-1">
-                      <Button size="sm" onClick={() => saveRow(se.id)}>Save</Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function AddOnEditor({
-  templates, selectedTemplate, onSelectTemplate,
-}: {
-  templates: Template[];
-  selectedTemplate: number | null;
-  onSelectTemplate: (id: number | null) => void;
-}) {
-  const router = useRouter();
-  const tmpl = templates.find((t) => t.id === selectedTemplate);
-
-  const [prices, setPrices] = useState<Record<number, Record<string, string>>>({});
-
-  const loadPrices = (seId: number) => {
-    const se = tmpl?.subEvents.find((s) => s.id === seId);
-    if (!se) return {};
-    try {
-      const parsed = JSON.parse(se.priceOverrides);
-      const result: Record<string, string> = {};
-      if (parsed.addOns) {
-        for (const [key, val] of Object.entries(parsed.addOns as Record<string, { value: number }>)) {
-          result[key] = String((val as { value: number }).value);
-        }
-      }
-      return result;
-    } catch { return {}; }
-  };
-
-  useEffect(() => {
-    if (!tmpl) { setPrices({}); return; }
-    const all: Record<number, Record<string, string>> = {};
-    for (const se of tmpl.subEvents) {
-      all[se.id] = loadPrices(se.id);
-    }
-    setPrices(all);
-  }, [selectedTemplate, templates]);
-
-  const saveRow = async (seId: number) => {
-    if (!selectedTemplate) return;
-    const se = tmpl?.subEvents.find((s) => s.id === seId);
-    if (!se) return;
-    const row = prices[seId] ?? {};
-    const addOns: Record<string, { value: number }> = {};
-    for (const aid of ADDON_IDS) {
-      if (row[aid] !== undefined && row[aid] !== "") {
-        addOns[aid] = { value: Number(row[aid]) || 0 };
-      }
-    }
-    let overrides: Record<string, unknown> = {};
-    try { overrides = JSON.parse(se.priceOverrides); } catch {}
-    overrides.addOns = addOns;
-    try {
-      await upsertSubEvent({
-        id: seId, subEventId: se.subEventId, name: se.name,
-        description: se.description, defaultSelected: se.defaultSelected,
-        maxReels: se.maxReels, sortOrder: se.sortOrder,
-        priceOverrides: overrides, templateId: selectedTemplate,
-      });
-      toast.success("Saved");
-      router.refresh();
-    } catch {
-      toast.error("Failed to save");
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex gap-2 flex-wrap">
-        {templates.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => onSelectTemplate(t.id)}
-            className={`rounded-[9999px] border px-3 py-1 text-sm transition-colors ${
-              selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
-            }`}
-          >
-            {t.name}
-          </button>
-        ))}
-      </div>
-
-      {tmpl && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-muted-foreground text-xs">
-                <th className="p-2 text-left font-medium">Sub-Event</th>
-                {ADDON_IDS.map((aid) => (
-                  <th key={aid} className="p-2 text-left font-medium min-w-[140px]">{ADDON_LABELS[aid]}</th>
-                ))}
-                <th className="p-2 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tmpl.subEvents.map((se) => {
-                const row = prices[se.id] ?? {};
-                return (
-                  <tr key={se.id} className="border-b">
-                    <td className="p-2 font-medium text-sm">{se.name}</td>
-                    {ADDON_IDS.map((aid) => (
-                      <td key={aid} className="p-1">
-                        <Input size={1} className="h-7 w-24 text-xs" placeholder="Price" value={row[aid] ?? ""} onChange={(e) => setPrices({ ...prices, [se.id]: { ...(prices[se.id] ?? {}), [aid]: e.target.value } })} />
-                      </td>
-                    ))}
-                    <td className="p-1">
-                      <Button size="sm" onClick={() => saveRow(se.id)}>Save</Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       )}
     </div>
   );

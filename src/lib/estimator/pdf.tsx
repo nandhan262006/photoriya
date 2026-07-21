@@ -16,7 +16,7 @@ import {
 } from "@react-pdf/renderer";
 import fs from "fs";
 import path from "path";
-import { formatINR } from "./format";
+import { formatINRPlain } from "./format";
 import type {
   DeliverableGroup,
   EstimateBreakdown,
@@ -288,7 +288,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
               ) : null}
             </View>
             <Text style={styles.linePrice}>
-              {formatINR(item.value)}
+              {formatINRPlain(item.value)}
             </Text>
           </View>
         ))}
@@ -300,8 +300,8 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
               <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
               <Text style={styles.totalValue}>
                 {estimate.isEmpty
-                  ? formatINR(0)
-                  : formatINR(estimate.total)}
+                  ? formatINRPlain(0)
+                  : formatINRPlain(estimate.total)}
               </Text>
             </View>
 
@@ -354,7 +354,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
                 ) : null}
               </View>
               <Text style={styles.linePrice}>
-                {formatINR(item.value)}
+                {formatINRPlain(item.value)}
               </Text>
             </View>
           ))}
@@ -366,8 +366,8 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
                 <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
                 <Text style={styles.totalValue}>
                   {estimate.isEmpty
-                    ? formatINR(0)
-                    : formatINR(estimate.total)}
+                    ? formatINRPlain(0)
+                    : formatINRPlain(estimate.total)}
                 </Text>
               </View>
 
@@ -421,7 +421,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
                 ) : null}
               </View>
               <Text style={styles.linePrice}>
-                {formatINR(item.value)}
+                {formatINRPlain(item.value)}
               </Text>
             </View>
           ))}
@@ -430,8 +430,8 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
             <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
             <Text style={styles.totalValue}>
               {estimate.isEmpty
-                ? formatINR(0)
-                : formatINR(estimate.total)}
+                ? formatINRPlain(0)
+                : formatINRPlain(estimate.total)}
             </Text>
           </View>
 

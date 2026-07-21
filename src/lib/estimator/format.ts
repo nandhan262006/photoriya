@@ -9,6 +9,11 @@ export function formatINR(amount: number): string {
   return inrFormatter.format(Math.round(amount));
 }
 
+export function formatINRPlain(amount: number): string {
+  const formatted = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Math.round(amount));
+  return `Rs. ${formatted}`;
+}
+
 export function formatINRCompact(amount: number): string {
   const n = Math.round(amount);
   if (n < 1000) return `\u20b9${n}`;

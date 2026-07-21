@@ -50,7 +50,7 @@ async function main() {
   console.log("Tables created");
 
   const existing = await client.execute("SELECT COUNT(*) as cnt FROM EventTemplate");
-  if ((existing.rows[0] as { cnt: number }).cnt > 0) {
+  if ((existing.rows[0] as unknown as { cnt: number }).cnt > 0) {
     console.log("Already seeded, skipping");
     return;
   }
@@ -78,14 +78,14 @@ async function main() {
   }
 
   const es = await client.execute("SELECT COUNT(*) as cnt FROM Service");
-  if ((es.rows[0] as {cnt:number}).cnt===0) {
+  if ((es.rows[0] as unknown as {cnt:number}).cnt===0) {
     for (const s of [["Wedding Photography","Full-day wedding coverage with 2 photographers","480","75000"],["Event Photography","Birthday, anniversary, or special event coverage","240","35000"],["Pre-Wedding Shoot","Creative pre-wedding photoshoot at location of choice","180","25000"],["Corporate Event","Professional coverage for corporate functions","360","50000"],["Portrait Session","Individual or family portrait photography","120","15000"]]) {
       await client.execute({sql:`INSERT INTO Service (name, description, duration, price) VALUES (?, ?, ?, ?)`,args:s as [string,string,string,string]});
     }
   }
 
   const ep = await client.execute("SELECT COUNT(*) as cnt FROM Photographer");
-  if ((ep.rows[0] as {cnt:number}).cnt===0) {
+  if ((ep.rows[0] as unknown as {cnt:number}).cnt===0) {
     await client.execute({sql:`INSERT INTO Photographer (name, email, phone, bio) VALUES (?, ?, ?, ?)`,args:["Venky","venky@photriya.com","+91 98765 43210","Lead photographer with 10+ years of experience"]});
   }
 

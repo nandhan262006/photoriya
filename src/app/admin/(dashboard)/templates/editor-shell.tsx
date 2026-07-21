@@ -35,8 +35,7 @@ interface Template {
   icon: string;
   isActive: boolean;
   defaultMaxReels: number;
-  defaultReelMin: number;
-  defaultReelMax: number;
+  defaultReelPrice: number;
   coverageOptions: string;
   addOnOptions: string;
   defaultPrices: string;
@@ -117,7 +116,7 @@ function EventsEditor({ templates }: { templates: Template[] }) {
   const [form, setForm] = useState({
     typeId: "", name: "", tagline: "", description: "",
     icon: "heart", isActive: true,
-    defaultMaxReels: 3, defaultReelMin: 4000, defaultReelMax: 8000,
+    defaultMaxReels: 3, defaultReelPrice: 6000,
     coverageOptions: [] as string[],
     addOnOptions: [] as string[],
   });
@@ -128,14 +127,13 @@ function EventsEditor({ templates }: { templates: Template[] }) {
         typeId: t.typeId, name: t.name, tagline: t.tagline,
         description: t.description, icon: t.icon, isActive: t.isActive,
         defaultMaxReels: t.defaultMaxReels,
-        defaultReelMin: t.defaultReelMin,
-        defaultReelMax: t.defaultReelMax,
+        defaultReelPrice: t.defaultReelPrice,
         coverageOptions: safeParse(t.coverageOptions) ?? [],
         addOnOptions: safeParse(t.addOnOptions) ?? [],
       });
       setEditing(t.id);
     } else {
-      setForm({ typeId: "", name: "", tagline: "", description: "", icon: "heart", isActive: true, defaultMaxReels: 3, defaultReelMin: 4000, defaultReelMax: 8000, coverageOptions: [], addOnOptions: [] });
+      setForm({ typeId: "", name: "", tagline: "", description: "", icon: "heart", isActive: true, defaultMaxReels: 3, defaultReelPrice: 6000, coverageOptions: [], addOnOptions: [] });
       setEditing(NEW_ID);
     }
   };
@@ -340,11 +338,11 @@ function safeParse<T = string[]>(val: string): T | null {
 function ReelsEditor({ templates }: { templates: Template[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<number | null>(null);
-  const [form, setForm] = useState({ defaultMaxReels: 3, defaultReelMin: 4000, defaultReelMax: 8000 });
+  const [maxReels, setMaxReels] = useState(3);
 
   const startEdit = (t?: Template) => {
     if (t) {
-      setForm({ defaultMaxReels: t.defaultMaxReels, defaultReelMin: t.defaultReelMin, defaultReelMax: t.defaultReelMax });
+      setMaxReels(t.defaultMaxReels);
       setEditing(t.id);
     }
   };
@@ -358,7 +356,9 @@ function ReelsEditor({ templates }: { templates: Template[] }) {
         id: editing,
         typeId: t.typeId, name: t.name, tagline: t.tagline,
         description: t.description, icon: t.icon, isActive: t.isActive,
-        ...form, coverageOptions: safeParse(t.coverageOptions) ?? [], addOnOptions: safeParse(t.addOnOptions) ?? [],
+        defaultMaxReels: maxReels,
+        defaultReelPrice: t.defaultReelPrice,
+        coverageOptions: safeParse(t.coverageOptions) ?? [], addOnOptions: safeParse(t.addOnOptions) ?? [],
         defaultPrices: t.defaultPrices,
       });
       toast.success("Saved");
@@ -379,20 +379,18 @@ function ReelsEditor({ templates }: { templates: Template[] }) {
           </div>
 
           {editing === t.id ? (
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div><Label className="text-xs">Max Reels</Label><Input type="number" value={form.defaultMaxReels} onChange={(e) => setForm({ ...form, defaultMaxReels: Number(e.target.value) })} /></div>
-              <div><Label className="text-xs">Reel Price Min</Label><Input type="number" value={form.defaultReelMin} onChange={(e) => setForm({ ...form, defaultReelMin: Number(e.target.value) })} /></div>
-              <div><Label className="text-xs">Reel Price Max</Label><Input type="number" value={form.defaultReelMax} onChange={(e) => setForm({ ...form, defaultReelMax: Number(e.target.value) })} /></div>
+            <div className="flex flex-col gap-3">
+              <div className="max-w-[200px]">
+                <Label className="text-xs">Max Reels</Label>
+                <Input type="number" value={maxReels} onChange={(e) => setMaxReels(Number(e.target.value))} />
+              </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={save}>Save</Button>
                 <Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
               </div>
             </div>
           ) : (
-            <div className="flex gap-4 text-sm text-muted-foreground">
-              <span>Max reels: {t.defaultMaxReels}</span>
-              <span>Reel price: ₹{t.defaultReelMin} – ₹{t.defaultReelMax}</span>
-            </div>
+            <span className="text-sm text-muted-foreground">Max reels: {t.defaultMaxReels}</span>
           )}
         </div>
       ))}
@@ -405,11 +403,12 @@ function PricesEditor({ templates }: { templates: Template[] }) {
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [prices, setPrices] = useState<Record<string, string>>({});
   const [addonPrices, setAddonPrices] = useState<Record<string, string>>({});
+  const [reelPrice, setReelPrice] = useState("");
 
   const tmpl = templates.find((t) => t.id === selectedTemplate);
 
   useEffect(() => {
-    if (!tmpl) { setPrices({}); setAddonPrices({}); return; }
+    if (!tmpl) { setPrices({}); setAddonPrices({}); setReelPrice(""); return; }
     const parsed = safeParse<Record<string, Record<string, number>>>(tmpl.defaultPrices);
     const cov: Record<string, string> = {};
     const add: Record<string, string> = {};
@@ -421,6 +420,7 @@ function PricesEditor({ templates }: { templates: Template[] }) {
     }
     setPrices(cov);
     setAddonPrices(add);
+    setReelPrice(parsed?.reel?.["value"] ? String(parsed.reel["value"]) : String(tmpl.defaultReelPrice));
   }, [selectedTemplate, templates]);
 
   const save = async () => {
@@ -429,17 +429,18 @@ function PricesEditor({ templates }: { templates: Template[] }) {
     const addOns: Record<string, number> = {};
     for (const [key, val] of Object.entries(prices)) { if (val) coverage[key] = Number(val); }
     for (const [key, val] of Object.entries(addonPrices)) { if (val) addOns[key] = Number(val); }
+    const reel = reelPrice ? { value: Number(reelPrice) } : undefined;
+    const defaultPrices = JSON.stringify({ coverage, addOns, ...(reel ? { reel } : {}) });
     try {
       await upsertTemplate({
         id: selectedTemplate,
         typeId: tmpl.typeId, name: tmpl.name, tagline: tmpl.tagline,
         description: tmpl.description, icon: tmpl.icon, isActive: tmpl.isActive,
         defaultMaxReels: tmpl.defaultMaxReels,
-        defaultReelMin: tmpl.defaultReelMin,
-        defaultReelMax: tmpl.defaultReelMax,
+        defaultReelPrice: reelPrice ? Number(reelPrice) : tmpl.defaultReelPrice,
         coverageOptions: safeParse(tmpl.coverageOptions) ?? [],
         addOnOptions: safeParse(tmpl.addOnOptions) ?? [],
-        defaultPrices: JSON.stringify({ coverage, addOns }),
+        defaultPrices,
       });
       toast.success("Default prices saved");
       router.refresh();
@@ -467,7 +468,7 @@ function PricesEditor({ templates }: { templates: Template[] }) {
       {tmpl && (
         <div className="rounded-xl border p-4 flex flex-col gap-6">
           <div>
-            <h3 className="text-sm font-medium mb-3">Default Coverage Prices</h3>
+            <h3 className="text-sm font-medium mb-3">Coverage Prices</h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {COVERAGE_IDS.map((cid) => (
                 <div key={cid}>
@@ -485,7 +486,7 @@ function PricesEditor({ templates }: { templates: Template[] }) {
           </div>
 
           <div>
-            <h3 className="text-sm font-medium mb-3">Default Add-on Prices</h3>
+            <h3 className="text-sm font-medium mb-3">Add-on Prices</h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {ADDON_IDS.map((aid) => (
                 <div key={aid}>
@@ -499,6 +500,20 @@ function PricesEditor({ templates }: { templates: Template[] }) {
                   />
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium mb-3">Reel Price</h3>
+            <div className="max-w-[200px]">
+              <Label className="text-xs">Price per reel</Label>
+              <Input
+                type="number"
+                className="h-8 text-xs"
+                placeholder="6000"
+                value={reelPrice}
+                onChange={(e) => setReelPrice(e.target.value)}
+              />
             </div>
           </div>
 

@@ -55,7 +55,7 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         defaultAddOnPrices: Object.keys(toPriceRange(defaultPrices.addOns)).length
           ? toPriceRange(defaultPrices.addOns)
           : DEFAULT_ADDON_PRICES,
-        defaultReelPrice: { value: Math.round((t.defaultReelMin + t.defaultReelMax) / 2) },
+        defaultReelPrice: { value: t.defaultReelPrice },
         defaultMaxReels: t.defaultMaxReels,
         subEvents: t.subEvents.map((se) => {
           const overrides: Record<string, unknown> = safeJson<Record<string, unknown>>(se.priceOverrides) ?? {};

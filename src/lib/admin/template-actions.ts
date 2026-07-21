@@ -34,8 +34,7 @@ export async function upsertTemplate(data: {
   icon: string;
   isActive: boolean;
   defaultMaxReels: number;
-  defaultReelMin: number;
-  defaultReelMax: number;
+  defaultReelPrice: number;
   coverageOptions: string[];
   addOnOptions: string[];
   defaultPrices?: string;
@@ -50,8 +49,7 @@ export async function upsertTemplate(data: {
     icon: data.icon,
     isActive: data.isActive,
     defaultMaxReels: data.defaultMaxReels,
-    defaultReelMin: data.defaultReelMin,
-    defaultReelMax: data.defaultReelMax,
+    defaultReelPrice: data.defaultReelPrice,
     coverageOptions: JSON.stringify(data.coverageOptions),
     addOnOptions: JSON.stringify(data.addOnOptions),
     defaultPrices: data.defaultPrices,

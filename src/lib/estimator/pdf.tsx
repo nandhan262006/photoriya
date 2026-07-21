@@ -139,11 +139,10 @@ const styles = StyleSheet.create({
   },
   watermark: {
     position: "absolute",
-    top: 350,
-    left: 150,
-    width: 300,
-    height: 100,
-    opacity: 0.5,
+    top: "40%",
+    left: "25%",
+    width: "50%",
+    opacity: 0.08,
   },
 });
 

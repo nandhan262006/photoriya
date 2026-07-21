@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 export async function requireAdmin() {
   const session = await auth();
-  if (!session?.user) throw new Error("Unauthorized");
+  const user = session?.user as { role?: string } | undefined;
+  if (!user || user.role !== "admin") throw new Error("Unauthorized");
 }
 
 export function getDb() {

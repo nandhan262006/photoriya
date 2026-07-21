@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
   FileText,
   LogOut,
   Menu,
@@ -16,7 +15,6 @@ import {
 import { signOut } from "next-auth/react";
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/templates", label: "Estimator Editor", icon: FileText },
   { href: "/admin/estimates", label: "Estimates", icon: ReceiptIndianRupee },
 ];
@@ -66,10 +64,7 @@ export function AdminSidebar() {
         <nav className="flex-1 space-y-1 p-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname.startsWith(item.href);
+            const isActive = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}

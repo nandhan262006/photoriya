@@ -1,8 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireAdmin, getDb } from "@/lib/db-utils";
 import { estimateLead } from "@/lib/db/schema";
-import { sql, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export async function saveEstimateLead(data: {
   clientName: string;
@@ -35,5 +36,31 @@ export async function getEstimateLeads() {
   } catch (e) {
     console.error("Failed to fetch estimate leads:", e);
     return [];
+  }
+}
+
+export async function markEstimateComplete(id: number) {
+  await requireAdmin();
+  const db = getDb();
+  try {
+    await db.update(estimateLead).set({ status: "completed" }).where(eq(estimateLead.id, id));
+    revalidatePath("/admin/estimates");
+    return { success: true };
+  } catch (e) {
+    console.error("Failed to mark estimate complete:", e);
+    return { success: false };
+  }
+}
+
+export async function deleteEstimateLead(id: number) {
+  await requireAdmin();
+  const db = getDb();
+  try {
+    await db.delete(estimateLead).where(eq(estimateLead.id, id));
+    revalidatePath("/admin/estimates");
+    return { success: true };
+  } catch (e) {
+    console.error("Failed to delete estimate lead:", e);
+    return { success: false };
   }
 }

@@ -1,4 +1,6 @@
 import { getEstimateLeads } from "@/lib/estimator/lead-actions";
+import { MarkCompleteButton } from "@/components/admin/mark-complete-button";
+import { DeleteEstimateButton } from "@/components/admin/delete-estimate-button";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +22,14 @@ export default async function AdminEstimatesPage() {
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Phone</th>
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Event</th>
               <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Date</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium">Status</th>
+              <th className="whitespace-nowrap p-3 text-left text-sm font-medium" />
             </tr>
           </thead>
           <tbody>
             {leads.length === 0 && (
               <tr>
-                <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                <td colSpan={6} className="p-8 text-center text-muted-foreground">
                   No estimates yet. Clients will appear here when they use the estimator.
                 </td>
               </tr>
@@ -40,6 +44,17 @@ export default async function AdminEstimatesPage() {
                     day: "numeric", month: "short", year: "numeric",
                     hour: "2-digit", minute: "2-digit",
                   })}
+                </td>
+                <td className="p-3 text-sm">
+                  <span className={lead.status === "completed" ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                    {lead.status === "completed" ? "Completed" : "Pending"}
+                  </span>
+                </td>
+                <td className="p-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <MarkCompleteButton id={lead.id} currentStatus={lead.status} />
+                    <DeleteEstimateButton id={lead.id} />
+                  </div>
                 </td>
               </tr>
             ))}

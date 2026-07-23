@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Estimator } from "@/components/estimator/estimator";
 import { loadTemplates } from "@/lib/estimator/templates";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Event Cost Estimator | Photriya Studios",
   description:

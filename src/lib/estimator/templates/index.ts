@@ -61,12 +61,14 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         icon: t.icon,
         coverageOptions,
         addOnOptions,
-        defaultCoveragePrices: Object.keys(toPriceRange(defaultPrices.coverage)).length
-          ? toPriceRange(defaultPrices.coverage)
-          : DEFAULT_COVERAGE_PRICES,
-        defaultAddOnPrices: Object.keys(toPriceRange(defaultPrices.addOns)).length
-          ? toPriceRange(defaultPrices.addOns)
-          : DEFAULT_ADDON_PRICES,
+        defaultCoveragePrices: {
+          ...DEFAULT_COVERAGE_PRICES,
+          ...toPriceRange(defaultPrices.coverage),
+        },
+        defaultAddOnPrices: {
+          ...DEFAULT_ADDON_PRICES,
+          ...toPriceRange(defaultPrices.addOns),
+        },
         defaultReelPrice: { value: t.defaultReelPrice },
         defaultMaxReels: t.defaultMaxReels,
         subEvents: templateSubEvents.map((se) => {

@@ -66,6 +66,7 @@ export async function upsertTemplate(data: {
     await db.insert(eventTemplate).values(payload);
   }
   revalidatePath("/admin/templates");
+  revalidatePath("/estimator");
   return { success: true };
 }
 
@@ -98,6 +99,7 @@ export async function upsertSubEvent(data: {
     await db.insert(subEvent).values(payload);
   }
   revalidatePath("/admin/templates");
+  revalidatePath("/estimator");
   return { success: true };
 }
 
@@ -106,6 +108,7 @@ export async function deleteSubEvent(id: number) {
   const db = getDb();
   await db.delete(subEvent).where(eq(subEvent.id, id));
   revalidatePath("/admin/templates");
+  revalidatePath("/estimator");
   return { success: true };
 }
 
@@ -114,5 +117,6 @@ export async function deleteTemplate(id: number) {
   const db = getDb();
   await db.delete(eventTemplate).where(eq(eventTemplate.id, id));
   revalidatePath("/admin/templates");
+  revalidatePath("/estimator");
   return { success: true };
 }

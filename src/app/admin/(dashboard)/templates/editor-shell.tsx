@@ -174,6 +174,52 @@ function EventsEditor({ templates }: { templates: Template[] }) {
           <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
           <div className="sm:col-span-2"><Label>Tagline</Label><Input value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} /></div>
           <div className="sm:col-span-2"><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          <div className="sm:col-span-2">
+            <Label className="text-xs mb-1 block">Coverage Options</Label>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {COVERAGE_IDS.map((cid) => (
+                <label key={cid} className="flex items-center gap-1.5 text-xs">
+                  <input
+                    type="checkbox"
+                    className="size-3.5"
+                    checked={form.coverageOptions.includes(cid)}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        coverageOptions: e.target.checked
+                          ? [...form.coverageOptions, cid]
+                          : form.coverageOptions.filter((c) => c !== cid),
+                      })
+                    }
+                  />
+                  {COVERAGE_LABELS[cid]}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="sm:col-span-2">
+            <Label className="text-xs mb-1 block">Add-on Options</Label>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {ADDON_IDS.map((aid) => (
+                <label key={aid} className="flex items-center gap-1.5 text-xs">
+                  <input
+                    type="checkbox"
+                    className="size-3.5"
+                    checked={form.addOnOptions.includes(aid)}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        addOnOptions: e.target.checked
+                          ? [...form.addOnOptions, aid]
+                          : form.addOnOptions.filter((a) => a !== aid),
+                      })
+                    }
+                  />
+                  {ADDON_LABELS[aid]}
+                </label>
+              ))}
+            </div>
+          </div>
           <div>
             <Label>Icon</Label>
             <select className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}>
@@ -409,7 +455,7 @@ function PricesEditor({ templates }: { templates: Template[] }) {
 
   useEffect(() => {
     if (!tmpl) { setPrices({}); setAddonPrices({}); setReelPrice(""); return; }
-    const parsed = safeParse<Record<string, Record<string, number>>>(tmpl.defaultPrices);
+    const parsed = safeParse<{ coverage?: Record<string, number>; addOns?: Record<string, number>; reel?: { value: number } }>(tmpl.defaultPrices);
     const cov: Record<string, string> = {};
     const add: Record<string, string> = {};
     if (parsed?.coverage) {
@@ -420,8 +466,8 @@ function PricesEditor({ templates }: { templates: Template[] }) {
     }
     setPrices(cov);
     setAddonPrices(add);
-    setReelPrice(parsed?.reel?.["value"] ? String(parsed.reel["value"]) : String(tmpl.defaultReelPrice));
-  }, [selectedTemplate, templates]);
+    setReelPrice(parsed?.reel?.value ? String(parsed.reel.value) : String(tmpl.defaultReelPrice));
+  }, [selectedTemplate]);
 
   const save = async () => {
     if (!selectedTemplate || !tmpl) return;

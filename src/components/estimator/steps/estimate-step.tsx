@@ -8,16 +8,27 @@ import { Separator } from "@/components/ui/separator";
 import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
-const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
-
 export function EstimateStep() {
-  const { estimate, deliverables, recommendations, dispatch } =
+  const { estimate, subEventDeliverables, recommendations, dispatch } =
     useEstimator();
 
-  const grouped = GROUP_ORDER.map((group) => ({
-    group,
-    items: estimate.items.filter((i) => i.group === group),
-  })).filter((g) => g.items.length > 0);
+  const subEventGroups = new Map<string, string>();
+  const subEventItems = new Map<string, Map<string, typeof estimate.items>>();
+  const subEventOrder: string[] = [];
+
+  for (const item of estimate.items) {
+    const subName = item.detail ?? "General";
+    if (!subEventItems.has(subName)) {
+      subEventItems.set(subName, new Map());
+      subEventOrder.push(subName);
+    }
+    const groups = subEventItems.get(subName)!;
+    if (!groups.has(item.group)) {
+      groups.set(item.group, []);
+    }
+    groups.get(item.group)!.push(item);
+    subEventGroups.set(subName, item.detail ?? "");
+  }
 
   return (
     <section className="flex flex-col gap-6">
@@ -51,68 +62,84 @@ export function EstimateStep() {
             )}
           </div>
 
-          {grouped.length > 0 && (
+          {subEventOrder.length > 0 && (
             <div className="flex flex-col gap-4">
               <h2 className="font-heading text-lg font-medium">
                 Price breakdown
               </h2>
-              <div className="flex flex-col gap-4">
-                {grouped.map((g) => (
-                  <div key={g.group} className="flex flex-col gap-1.5">
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      {g.group}
-                    </span>
-                    {g.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-start justify-between gap-3 text-sm"
-                      >
-                        <div className="flex min-w-0 flex-col">
-                          <span className="font-medium">{item.label}</span>
-                          {item.detail && (
-                            <span className="text-xs text-muted-foreground">
-                              {item.detail}
+              <div className="flex flex-col gap-5">
+                {subEventOrder.map((subName) => {
+                  const groups = subEventItems.get(subName)!;
+                  return (
+                    <div key={subName} className="flex flex-col gap-2">
+                      <span className="text-sm font-semibold text-foreground">
+                        {subName}
+                      </span>
+                      <div className="rounded-lg border bg-muted/20 p-3">
+                        {[...groups.entries()].map(([group, items]) => (
+                          <div key={group} className="mb-3 last:mb-0">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              {group}
                             </span>
-                          )}
-                        </div>
-                        <span className="shrink-0 tabular-nums">
-                          {formatINR(item.value)}
-                        </span>
+                            <div className="mt-1.5 flex flex-col gap-1">
+                              {items.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="flex items-start justify-between gap-3 rounded-md bg-background p-2 text-sm"
+                                >
+                                  <span className="font-medium">{item.label}</span>
+                                  <span className="shrink-0 tabular-nums">
+                                    {formatINR(item.value)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {deliverables.length > 0 && (
+          {subEventDeliverables.length > 0 && (
             <>
               <Separator />
               <div className="flex flex-col gap-3">
                 <h2 className="font-heading text-lg font-medium">
                   What you&apos;ll receive
                 </h2>
-                <div className="flex flex-col gap-3">
-                  {deliverables.map((g) => (
-                    <div key={g.group} className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                        {g.group}
+                <div className="flex flex-col gap-5">
+                  {subEventDeliverables.map((se) => (
+                    <div key={se.subEventId} className="flex flex-col gap-2">
+                      <span className="text-sm font-semibold text-foreground">
+                        {se.subEventName}
                       </span>
-                      {g.items.map((d) => (
-                        <div
-                          key={d.id}
-                          className="flex items-start gap-2 text-sm"
-                        >
-                          <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                          <span className="flex flex-wrap items-baseline gap-x-1.5">
-                            <span>{d.label}</span>
-                            {d.detail && (
-                              <span className="text-xs text-muted-foreground">
-                                ({d.detail})
-                              </span>
-                            )}
+                      {se.groups.map((grp) => (
+                        <div key={grp.group} className="rounded-lg border bg-muted/20 p-3">
+                          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            {grp.group}
                           </span>
+                          <div className="mt-1.5 flex flex-col gap-1">
+                            {grp.services.map((svc, i) => (
+                              <div
+                                key={`${se.subEventId}-${grp.group}-${i}`}
+                                className="flex items-start gap-2 rounded-md bg-background p-2 text-sm"
+                              >
+                                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                                <span className="flex flex-wrap items-baseline gap-x-1.5">
+                                  <span>{svc.label}</span>
+                                  {svc.detail && (
+                                    <span className="text-xs text-muted-foreground">
+                                      ({svc.detail})
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>

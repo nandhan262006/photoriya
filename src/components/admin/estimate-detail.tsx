@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type { EstimateBreakdown, DeliverableGroup, EstimatorState } from "@/lib/estimator/types";
+import type { EstimateBreakdown, DeliverableGroup, SubEventDeliverable, EstimatorState } from "@/lib/estimator/types";
 
 function formatINR(amount: number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -18,15 +18,14 @@ interface SavedEstimate {
   state?: { selectedSubEvents?: unknown[] };
   estimate?: EstimateBreakdown;
   deliverables?: DeliverableGroup[];
+  subEventDeliverables?: SubEventDeliverable[];
 }
 
 function parseEstimateData(raw: string): SavedEstimate | null {
   try {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object") {
-      // new format: { state, estimate, deliverables }
       if ("estimate" in parsed) return parsed as SavedEstimate;
-      // legacy format: just the state object
       return { state: parsed as EstimatorState };
     }
     return null;
@@ -44,7 +43,7 @@ export function EstimateDetail({ estimateData }: { estimateData: string }) {
   }
 
   const estimate = data.estimate;
-  const deliverables = data.deliverables;
+  const subEventDeliverables = data.subEventDeliverables;
 
   return (
     <div>
@@ -96,19 +95,31 @@ export function EstimateDetail({ estimateData }: { estimateData: string }) {
             </p>
           )}
 
-          {deliverables && deliverables.length > 0 && (
-            <div className="mt-3 flex flex-col gap-1 border-t pt-3">
+          {subEventDeliverables && subEventDeliverables.length > 0 && (
+            <div className="mt-3 flex flex-col gap-2 border-t pt-3">
               <span className="text-xs font-medium uppercase text-muted-foreground">
                 Deliverables
               </span>
-              {deliverables.map((g) =>
-                g.items.map((d) => (
-                  <div key={d.id} className="flex items-start gap-2 text-xs">
-                    <span className="text-primary/70">&#10003;</span>
-                    <span>{d.label}{d.detail ? ` (${d.detail})` : ""}</span>
-                  </div>
-                )),
-              )}
+              {subEventDeliverables.map((se) => (
+                <div key={se.subEventId} className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-foreground">
+                    {se.subEventName}
+                  </span>
+                  {se.groups.map((grp) => (
+                    <div key={grp.group} className="pl-2 mb-1">
+                      <span className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        {grp.group}
+                      </span>
+                      {grp.services.map((svc, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs pl-2">
+                          <span className="text-primary/70">&#10003;</span>
+                          <span>{svc.label}{svc.detail ? ` (${svc.detail})` : ""}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
           )}
         </div>

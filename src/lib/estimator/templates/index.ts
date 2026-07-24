@@ -1,7 +1,7 @@
 import type { EventTemplate, ID, PriceRange } from "../types";
 import { db } from "@/lib/db";
 import { eventTemplate, subEvent } from "@/lib/db/schema";
-import { eq, asc, and } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import {
   deliverableRulesFor,
   commonRecommendations,
@@ -38,8 +38,8 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
     const allSubEvents = await db.select().from(subEvent).orderBy(asc(subEvent.sortOrder));
 
     return dbTemplates.map((t) => {
-      const coverageOptions: ID[] = safeJson<ID[]>(t.coverageOptions) ?? [];
-      const addOnOptions: ID[] = safeJson<ID[]>(t.addOnOptions) ?? [];
+      const rawCoverage: ID[] = safeJson<ID[]>(t.coverageOptions) ?? [];
+      const rawAddOns: ID[] = safeJson<ID[]>(t.addOnOptions) ?? [];
       const defaultPrices: Record<string, Record<string, number>> = safeJson(t.defaultPrices) ?? {};
 
       function toPriceRange(map: Record<string, number> | undefined): Record<ID, PriceRange> {
@@ -51,6 +51,33 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         return result;
       }
 
+      const overrideCoverage = toPriceRange(defaultPrices.coverage);
+      const overrideAddOns = toPriceRange(defaultPrices.addOns);
+
+      const mergedCoverage: Record<ID, PriceRange> = {
+        ...DEFAULT_COVERAGE_PRICES,
+        ...overrideCoverage,
+      };
+
+      const mergedAddOns: Record<ID, PriceRange> = {
+        ...DEFAULT_ADDON_PRICES,
+        ...overrideAddOns,
+      };
+
+      const nonZeroCoverage = Object.keys(mergedCoverage).filter(
+        (id) => mergedCoverage[id].value !== 0,
+      );
+      const nonZeroAddOns = Object.keys(mergedAddOns).filter(
+        (id) => mergedAddOns[id].value !== 0,
+      );
+
+      const coverageOptions = rawCoverage.length > 0
+        ? rawCoverage.filter((id) => mergedCoverage[id]?.value !== 0)
+        : nonZeroCoverage;
+      const addOnOptions = rawAddOns.length > 0
+        ? rawAddOns.filter((id) => mergedAddOns[id]?.value !== 0)
+        : nonZeroAddOns;
+
       const templateSubEvents = allSubEvents.filter((se) => se.templateId === t.id);
 
       return {
@@ -61,14 +88,8 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         icon: t.icon,
         coverageOptions,
         addOnOptions,
-        defaultCoveragePrices: {
-          ...DEFAULT_COVERAGE_PRICES,
-          ...toPriceRange(defaultPrices.coverage),
-        },
-        defaultAddOnPrices: {
-          ...DEFAULT_ADDON_PRICES,
-          ...toPriceRange(defaultPrices.addOns),
-        },
+        defaultCoveragePrices: mergedCoverage,
+        defaultAddOnPrices: mergedAddOns,
         defaultReelPrice: { value: t.defaultReelPrice },
         defaultMaxReels: t.defaultMaxReels,
         subEvents: templateSubEvents.map((se) => {
@@ -98,10 +119,26 @@ function safeJson<T>(val: string): T | null {
   try { return JSON.parse(val) as T; } catch { return null; }
 }
 
+function applyZeroPriceFilter(t: EventTemplate): EventTemplate {
+  return {
+    ...t,
+    coverageOptions: t.coverageOptions.filter(
+      (id) => t.defaultCoveragePrices[id]?.value !== 0
+    ),
+    addOnOptions: t.addOnOptions.filter(
+      (id) => t.defaultAddOnPrices[id]?.value !== 0
+    ),
+    deliverableRules: deliverableRulesFor(
+      t.coverageOptions.filter((id) => t.defaultCoveragePrices[id]?.value !== 0),
+      t.addOnOptions.filter((id) => t.defaultAddOnPrices[id]?.value !== 0),
+    ),
+  };
+}
+
 export async function loadTemplates(): Promise<EventTemplate[]> {
   const dbTemplates = await loadDbTemplates();
-  if (dbTemplates.length > 0) return JSON.parse(JSON.stringify(dbTemplates));
-  return HARDCODED_TEMPLATES;
+  const templates = dbTemplates.length > 0 ? dbTemplates : HARDCODED_TEMPLATES;
+  return templates.map(applyZeroPriceFilter);
 }
 
 export async function loadTemplate(id: ID | null): Promise<EventTemplate | null> {

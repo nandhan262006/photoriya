@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
   type ReactNode,
@@ -13,9 +14,10 @@ import type {
   EstimateBreakdown,
   EventTemplate,
   EstimatorState,
+  SubEventDeliverable,
 } from "./types";
 import { calculateEstimate } from "./pricing";
-import { generateDeliverables } from "./deliverables";
+import { generateDeliverables, generateSubEventDeliverables } from "./deliverables";
 import { evaluateRecommendations } from "./recommendations";
 import {
   estimatorReducer,
@@ -37,6 +39,7 @@ interface EstimatorContextValue {
   template: EventTemplate | null;
   estimate: EstimateBreakdown;
   deliverables: DeliverableGroup[];
+  subEventDeliverables: SubEventDeliverable[];
   recommendations: ActiveRecommendation[];
 }
 
@@ -66,10 +69,24 @@ export function EstimatorProvider({
     [state, template],
   );
 
+  const subEventDeliverables = useMemo(
+    () => (template ? generateSubEventDeliverables(state, template) : []),
+    [state, template],
+  );
+
   const recommendations = useMemo(
     () => (template ? evaluateRecommendations(state, template) : []),
     [state, template],
   );
+
+  useEffect(() => {
+    if (!state.estimatedDate && template && !estimate.isEmpty) {
+      dispatch({
+        type: "SET_ESTIMATED_DATE",
+        value: new Date().toISOString().slice(0, 10),
+      });
+    }
+  }, [template, estimate.isEmpty, state.estimatedDate, dispatch]);
 
   const value = useMemo<EstimatorContextValue>(
     () => ({
@@ -79,9 +96,10 @@ export function EstimatorProvider({
       template,
       estimate,
       deliverables,
+      subEventDeliverables,
       recommendations,
     }),
-    [state, dispatch, templates, template, estimate, deliverables, recommendations],
+    [state, dispatch, templates, template, estimate, deliverables, subEventDeliverables, recommendations],
   );
 
   return (

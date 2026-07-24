@@ -5,15 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
-const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
-
 export function EstimatePanel({ compact = false }: { compact?: boolean }) {
-  const { estimate, recommendations, dispatch } = useEstimator();
-
-  const grouped = GROUP_ORDER.map((group) => ({
-    group,
-    items: estimate.items.filter((i) => i.group === group),
-  })).filter((g) => g.items.length > 0);
+  const { estimate, recommendations, subEventDeliverables, dispatch } = useEstimator();
 
   return (
     <div className="flex flex-col gap-4">
@@ -59,31 +52,25 @@ export function EstimatePanel({ compact = false }: { compact?: boolean }) {
         )}
       </div>
 
-      {!compact && grouped.length > 0 && (
+      {!compact && subEventDeliverables.length > 0 && (
         <>
           <Separator />
           <div className="flex max-h-[44vh] flex-col gap-3 overflow-y-auto pr-1">
-            {grouped.map((g) => (
-              <div key={g.group} className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {g.group}
+            {subEventDeliverables.map((se) => (
+              <div key={se.subEventId} className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-foreground">
+                  {se.subEventName}
                 </span>
-                {g.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-start justify-between gap-3 text-sm"
-                  >
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate font-medium">{item.label}</span>
-                      {item.detail && (
-                        <span className="truncate text-xs text-muted-foreground">
-                          {item.detail}
-                        </span>
-                      )}
-                    </div>
-                    <span className="shrink-0 tabular-nums text-muted-foreground">
-                      {formatINR(item.value)}
+                {se.groups.map((grp) => (
+                  <div key={grp.group} className="pl-2">
+                    <span className="text-[10px] font-semibold uppercase text-muted-foreground">
+                      {grp.group}
                     </span>
+                    {grp.services.map((svc, i) => (
+                      <span key={i} className="block text-xs text-muted-foreground pl-2">
+                        {svc.label}
+                      </span>
+                    ))}
                   </div>
                 ))}
               </div>

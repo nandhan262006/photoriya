@@ -172,6 +172,7 @@ export interface AlbumState {
 export interface EstimatorState {
   clientName: string;
   clientPhone: string;
+  estimatedDate: string;
   eventTypeId: ID | null;
   /** Selected sub-event ids, order preserved. */
   selectedSubEvents: ID[];
@@ -211,11 +212,24 @@ export interface Deliverable {
   label: string;
   /** e.g. "5 sub-events" or "3 reels" — optional supporting detail. */
   detail?: string;
+  /** The sub-event this deliverable belongs to. */
+  subEvent?: string;
+  subEventId?: ID;
 }
 
 export interface DeliverableGroup {
   group: string;
   items: Deliverable[];
+}
+
+/** Deliverables re-grouped by sub-event for structured display. */
+export interface SubEventDeliverable {
+  subEventId: ID;
+  subEventName: string;
+  groups: {
+    group: string;
+    services: { label: string; detail?: string }[];
+  }[];
 }
 
 /* -------------------------------------------------------------------------- */

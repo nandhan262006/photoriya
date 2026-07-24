@@ -18,10 +18,10 @@ import fs from "fs";
 import path from "path";
 import { formatINRPlain } from "./format";
 import type {
-  DeliverableGroup,
   EstimateBreakdown,
   EstimatorState,
   EventTemplate,
+  SubEventDeliverable,
 } from "./types";
 
 // Load watermark image as base64
@@ -40,11 +40,9 @@ function getWatermarkBase64(): string | null {
   }
 }
 
-const GROUP_ORDER = ["Coverage", "Add-on Services", "Reels", "Albums"];
-
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 25,
     fontSize: 10,
     fontFamily: "Helvetica",
     color: "#1a1a1a",
@@ -68,7 +66,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#d1d5db",
-    marginVertical: 16,
+    marginVertical: 8,
   },
   sectionTitle: {
     fontSize: 11,
@@ -101,7 +99,7 @@ const styles = StyleSheet.create({
   lineItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   lineLabel: { flex: 1, paddingRight: 12 },
   lineDetail: { fontSize: 8, color: "#9ca3af" },
@@ -121,7 +119,7 @@ const styles = StyleSheet.create({
   },
   deliverable: {
     flexDirection: "row",
-    marginBottom: 2,
+    marginBottom: 3,
   },
   deliverableBullet: { width: 12, color: "#15181D" },
   deliverableText: { flex: 1 },
@@ -150,7 +148,7 @@ interface PdfProps {
   template: EventTemplate;
   state: EstimatorState;
   estimate: EstimateBreakdown;
-  deliverables: DeliverableGroup[];
+  subEventDeliverables: SubEventDeliverable[];
 }
 
 function Watermark() {
@@ -163,80 +161,247 @@ function Watermark() {
 
 // A4 dimensions in points
 const PAGE_HEIGHT = 842;
-const PAGE_PADDING = 80; // 40 top + 40 bottom
+const PAGE_PADDING = 50; // 25 top + 25 bottom
 const AVAILABLE_HEIGHT = PAGE_HEIGHT - PAGE_PADDING;
 
-// Estimated heights for layout calculation
-const HEADER_HEIGHT = 40;
-const DIVIDER_HEIGHT = 32;
-const SECTION_TITLE_HEIGHT = 20;
-const META_ROW_HEIGHT = 16;
-const LINE_ITEM_HEIGHT = 20;
-const TOTAL_BOX_HEIGHT = 60;
-const DELIVERABLE_GROUP_HEIGHT = 18;
-const DELIVERABLE_ITEM_HEIGHT = 15;
-const DISCLAIMER_HEIGHT = 40;
-const FOOTER_HEIGHT = 30;
+// Compact height estimates
+const HEADER_HEIGHT = 24;
+const DIVIDER_HEIGHT = 17;
+const SECTION_TITLE_HEIGHT = 13;
+const META_ROW_HEIGHT = 10;
+const LINE_ITEM_HEIGHT = 18;
+const TOTAL_BOX_HEIGHT = 44;
+const DELIVERABLE_GROUP_HEIGHT = 14;
+const DELIVERABLE_ITEM_HEIGHT = 13;
+const DISCLAIMER_HEIGHT = 24;
+const FOOTER_HEIGHT = 16;
 
-function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfProps) {
+const SUBHEADING_H = 16;
+const CATHEADING_H = 12;
+
+function PdfDeliverablesSection({ subEventDeliverables }: { subEventDeliverables: SubEventDeliverable[] }) {
+  if (subEventDeliverables.length === 0) return null;
+  return (
+    <>
+      <View style={styles.divider} />
+      <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
+      {subEventDeliverables.map((se) => (
+        <View key={se.subEventId} style={{ marginBottom: 8 }}>
+          <Text style={styles.groupLabel}>{se.subEventName}</Text>
+          {se.groups.map((grp) => (
+            <View key={grp.group} style={{ marginBottom: 4, marginLeft: 8 }}>
+              <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: "#6b7280", marginTop: 4, marginBottom: 3, textTransform: "uppercase" }}>
+                {grp.group}
+              </Text>
+              {grp.services.map((svc, i) => (
+                <View key={`${se.subEventId}-${grp.group}-${i}`} style={styles.deliverable}>
+                  <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
+                  <Text style={styles.deliverableText}>
+                    {svc.label}
+                    {svc.detail ? `  (${svc.detail})` : ""}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      ))}
+    </>
+  );
+}
+
+type PdfChunk =
+  | { type: "subheading"; label: string }
+  | { type: "catheading"; label: string }
+  | { type: "item"; id: string; label: string; value: number; }
+
+function chunkHeight(c: PdfChunk): number {
+  if (c.type === "subheading") return SUBHEADING_H;
+  if (c.type === "catheading") return CATHEADING_H;
+  return LINE_ITEM_HEIGHT;
+}
+
+function withContinuationHeadings(chunks: PdfChunk[], prevChunks: PdfChunk[]): PdfChunk[] {
+  if (chunks.length === 0) return chunks;
+  if (chunks[0].type === "subheading") return chunks;
+
+  let lastSub: PdfChunk | null = null;
+  let lastCat: PdfChunk | null = null;
+
+  for (let i = prevChunks.length - 1; i >= 0; i--) {
+    if (prevChunks[i].type === "subheading") { lastSub = prevChunks[i]; break; }
+  }
+  if (chunks[0].type === "item") {
+    for (let i = prevChunks.length - 1; i >= 0; i--) {
+      if (prevChunks[i].type === "catheading") { lastCat = prevChunks[i]; break; }
+      if (prevChunks[i].type === "subheading") break;
+    }
+  }
+
+  const result: PdfChunk[] = [];
+  if (lastSub) result.push(lastSub);
+  if (lastCat) result.push(lastCat);
+  result.push(...chunks);
+  return result;
+}
+
+function PdfPriceSection({ chunks }: { chunks: PdfChunk[] }) {
+  return (
+    <>
+      {chunks.map((c, i) => {
+        if (c.type === "subheading") {
+          return <Text key={i} style={styles.groupLabel}>{c.label}</Text>;
+        }
+        if (c.type === "catheading") {
+          return (
+            <Text key={i} style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: "#6b7280", marginTop: 4, marginBottom: 3, marginLeft: 8, textTransform: "uppercase" }}>
+              {c.label}
+            </Text>
+          );
+        }
+        return (
+          <View key={c.id} style={styles.lineItem}>
+            <View style={styles.lineLabel}>
+              <Text>{c.label}</Text>
+            </View>
+            <Text style={styles.linePrice}>
+              {formatINRPlain(c.value)}
+            </Text>
+          </View>
+        );
+      })}
+    </>
+  );
+}
+
+function EstimatePdfDocument({ template, state, estimate, subEventDeliverables }: PdfProps) {
   const today = new Date().toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
+  const estimatedDateDisplay = state.estimatedDate
+    ? new Date(state.estimatedDate + "T00:00:00").toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+
   const subEventNames = state.selectedSubEvents.map(
     (id) => template.subEvents.find((s) => s.id === id)?.name ?? id,
   );
 
-  const grouped = GROUP_ORDER.map((group) => ({
-    group,
-    items: estimate.items.filter((i) => i.group === group),
-  })).filter((g) => g.items.length > 0);
+  // Group estimate items by sub-event → category
+  const subMap = new Map<string, Map<string, typeof estimate.items>>();
+  const subOrder: string[] = [];
+  for (const item of estimate.items) {
+    const subName = item.detail ?? "";
+    if (!subMap.has(subName)) { subMap.set(subName, new Map()); subOrder.push(subName); }
+    const cats = subMap.get(subName)!;
+    if (!cats.has(item.group)) cats.set(item.group, []);
+    cats.get(item.group)!.push(item);
+  }
 
-  const allLineItems = grouped.flatMap((g) =>
-    g.items.map((item) => ({ ...item, group: g.group }))
-  );
+  const flatChunks: PdfChunk[] = [];
+  for (const subName of subOrder) {
+    flatChunks.push({ type: "subheading", label: subName });
+    for (const [cat, items] of subMap.get(subName)!) {
+      flatChunks.push({ type: "catheading", label: cat });
+      for (const item of items) {
+        flatChunks.push({ type: "item", id: item.id, label: item.label, value: item.value });
+      }
+    }
+  }
 
-  // Calculate fixed overhead (everything except line items and deliverables)
+  // Calculate fixed overhead (header, sections, dividers, total box, disclaimer, footer)
   const fixedHeight =
     HEADER_HEIGHT +
     DIVIDER_HEIGHT +
-    SECTION_TITLE_HEIGHT + // Event details title
-    META_ROW_HEIGHT * 2 + // Event type + Sub-events
+    SECTION_TITLE_HEIGHT + // Client details
+    META_ROW_HEIGHT * 2 +
+    (estimatedDateDisplay ? META_ROW_HEIGHT : 0) +
     DIVIDER_HEIGHT +
-    SECTION_TITLE_HEIGHT + // Price breakdown title
+    SECTION_TITLE_HEIGHT + // Event details
+    META_ROW_HEIGHT * 2 +
+    DIVIDER_HEIGHT +
+    SECTION_TITLE_HEIGHT + // Price breakdown
     TOTAL_BOX_HEIGHT +
     DISCLAIMER_HEIGHT +
     FOOTER_HEIGHT;
 
-  // Calculate deliverables height
-  const deliverablesHeight = deliverables.reduce((acc, g) => {
-    return acc + DELIVERABLE_GROUP_HEIGHT + g.items.length * DELIVERABLE_ITEM_HEIGHT;
+  const chunksTotalH = flatChunks.reduce((acc, c) => acc + chunkHeight(c), 0);
+
+  const delivCount = subEventDeliverables.reduce((acc, se) => {
+    return acc + 1 + se.groups.reduce((gacc, grp) => gacc + 1 + grp.services.length, 0);
   }, 0);
+  const deliverablesHeight = delivCount * DELIVERABLE_ITEM_HEIGHT + subEventDeliverables.length * DELIVERABLE_GROUP_HEIGHT;
 
-  // Available space for line items
-  const availableForItems = AVAILABLE_HEIGHT - fixedHeight - (deliverables.length > 0 ? deliverablesHeight + DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT : 0);
+  const delivOverhead = subEventDeliverables.length > 0
+    ? DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT + deliverablesHeight
+    : 0;
 
-  // How many items fit on page 1
-  const itemsPerPage1 = Math.floor(availableForItems / LINE_ITEM_HEIGHT);
-  const needsSecondPage = allLineItems.length > itemsPerPage1;
+  const totalNeeded = fixedHeight + chunksTotalH + delivOverhead;
+  const fitsOnePage = totalNeeded <= AVAILABLE_HEIGHT;
 
-  // Page 1 items
-  const page1Items = allLineItems.slice(0, itemsPerPage1);
-  // Page 2+ items
-  const remainingItems = allLineItems.slice(itemsPerPage1);
+  let page1Chunks: PdfChunk[];
+  let page2Chunks: PdfChunk[];
+  let needsSecondPage: boolean;
+  let page2NeedsThirdPage = false;
+  let page3Chunks: PdfChunk[] = [];
 
-  // Check if remaining items + deliverables fit on page 2
-  const page2AvailableHeight = AVAILABLE_HEIGHT - SECTION_TITLE_HEIGHT - 10;
-  const page2ItemsHeight = remainingItems.length * LINE_ITEM_HEIGHT;
-  const page2NeedsThirdPage = page2ItemsHeight + deliverablesHeight + DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT + DISCLAIMER_HEIGHT + FOOTER_HEIGHT > page2AvailableHeight;
+  if (fitsOnePage) {
+    page1Chunks = [...flatChunks];
+    page2Chunks = [];
+    needsSecondPage = false;
+  } else {
+    // Not everything fits — split: fill page 1, remainder on page 2+
+    const availableP1 = AVAILABLE_HEIGHT - fixedHeight - delivOverhead;
+    page1Chunks = [];
+    const rest: PdfChunk[] = [];
+    let used = 0;
+    let onP1 = true;
+    for (const c of flatChunks) {
+      const h = chunkHeight(c);
+      if (onP1 && used + h <= availableP1) {
+        page1Chunks.push(c);
+        used += h;
+      } else {
+        onP1 = false;
+        rest.push(c);
+      }
+    }
+    needsSecondPage = rest.length > 0;
 
-  // Split remaining items if needed
-  const page2Items = page2NeedsThirdPage
-    ? remainingItems.slice(0, Math.floor((page2AvailableHeight - DIVIDER_HEIGHT - SECTION_TITLE_HEIGHT - DISCLAIMER_HEIGHT - FOOTER_HEIGHT) / LINE_ITEM_HEIGHT))
-    : remainingItems;
-  const page3Items = page2NeedsThirdPage ? remainingItems.slice(page2Items.length) : [];
+    // Page 2: "Price breakdown (continued)" + remaining chunks + bottom content
+    const page2Top = SECTION_TITLE_HEIGHT;
+    const page2Bottom = TOTAL_BOX_HEIGHT + DISCLAIMER_HEIGHT + FOOTER_HEIGHT + delivOverhead;
+    const availableP2 = AVAILABLE_HEIGHT - page2Top - page2Bottom;
+
+    const continued = withContinuationHeadings(rest, page1Chunks);
+    const continuedH = continued.reduce((acc, c) => acc + chunkHeight(c), 0);
+    page2NeedsThirdPage = continuedH > availableP2;
+
+    if (page2NeedsThirdPage) {
+      page2Chunks = [];
+      page3Chunks = [];
+      let p2Used = 0;
+      let split = false;
+      for (const c of continued) {
+        const h = chunkHeight(c);
+        if (!split && p2Used + h <= availableP2) {
+          page2Chunks.push(c);
+          p2Used += h;
+        } else {
+          split = true;
+          page3Chunks.push(c);
+        }
+      }
+    } else {
+      page2Chunks = [...continued];
+    }
+  }
 
   return (
     <Document>
@@ -262,6 +427,12 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
           <Text style={styles.metaLabel}>Phone</Text>
           <Text style={styles.metaValue}>{state.clientPhone}</Text>
         </View>
+        {estimatedDateDisplay && (
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Estimated date</Text>
+            <Text style={styles.metaValue}>{estimatedDateDisplay}</Text>
+          </View>
+        )}
 
         <View style={styles.divider} />
 
@@ -282,19 +453,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
         <View style={styles.divider} />
 
         <Text style={styles.sectionTitle}>Price breakdown</Text>
-        {page1Items.map((item) => (
-          <View key={item.id} style={styles.lineItem}>
-            <View style={styles.lineLabel}>
-              <Text>{item.label}</Text>
-              {item.detail ? (
-                <Text style={styles.lineDetail}>{item.detail}</Text>
-              ) : null}
-            </View>
-            <Text style={styles.linePrice}>
-              {formatINRPlain(item.value)}
-            </Text>
-          </View>
-        ))}
+        <PdfPriceSection chunks={page1Chunks} />
 
         {/* If everything fits, show total + deliverables on page 1 */}
         {!needsSecondPage && (
@@ -308,25 +467,8 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
               </Text>
             </View>
 
-            {deliverables.length > 0 && (
-              <>
-                <View style={styles.divider} />
-                <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
-                {deliverables.map((g) => (
-                  <View key={g.group} style={{ marginBottom: 4 }}>
-                    <Text style={styles.groupLabel}>{g.group}</Text>
-                    {g.items.map((d) => (
-                      <View key={d.id} style={styles.deliverable}>
-                        <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
-                        <Text style={styles.deliverableText}>
-                          {d.label}
-                          {d.detail ? `  (${d.detail})` : ""}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                ))}
-              </>
+            {subEventDeliverables.length > 0 && (
+              <PdfDeliverablesSection subEventDeliverables={subEventDeliverables} />
             )}
 
             <Text style={styles.disclaimer}>
@@ -348,19 +490,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
         <Page size="A4" style={styles.page}>
           <Watermark />
           <Text style={styles.sectionTitle}>Price breakdown (continued)</Text>
-          {page2Items.map((item) => (
-            <View key={item.id} style={styles.lineItem}>
-              <View style={styles.lineLabel}>
-                <Text>{item.label}</Text>
-                {item.detail ? (
-                  <Text style={styles.lineDetail}>{item.detail}</Text>
-                ) : null}
-              </View>
-              <Text style={styles.linePrice}>
-                {formatINRPlain(item.value)}
-              </Text>
-            </View>
-          ))}
+          <PdfPriceSection chunks={page2Chunks} />
 
           {/* If no page 3 needed, show total + deliverables on page 2 */}
           {!page2NeedsThirdPage && (
@@ -374,25 +504,8 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
                 </Text>
               </View>
 
-              {deliverables.length > 0 && (
-                <>
-                  <View style={styles.divider} />
-                  <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
-                  {deliverables.map((g) => (
-                    <View key={g.group} style={{ marginBottom: 4 }}>
-                      <Text style={styles.groupLabel}>{g.group}</Text>
-                      {g.items.map((d) => (
-                        <View key={d.id} style={styles.deliverable}>
-                          <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
-                          <Text style={styles.deliverableText}>
-                            {d.label}
-                            {d.detail ? `  (${d.detail})` : ""}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  ))}
-                </>
+              {subEventDeliverables.length > 0 && (
+                <PdfDeliverablesSection subEventDeliverables={subEventDeliverables} />
               )}
 
               <Text style={styles.disclaimer}>
@@ -415,19 +528,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
         <Page size="A4" style={styles.page}>
           <Watermark />
           <Text style={styles.sectionTitle}>Price breakdown (continued)</Text>
-          {page3Items.map((item) => (
-            <View key={item.id} style={styles.lineItem}>
-              <View style={styles.lineLabel}>
-                <Text>{item.label}</Text>
-                {item.detail ? (
-                  <Text style={styles.lineDetail}>{item.detail}</Text>
-                ) : null}
-              </View>
-              <Text style={styles.linePrice}>
-                {formatINRPlain(item.value)}
-              </Text>
-            </View>
-          ))}
+          <PdfPriceSection chunks={page3Chunks} />
 
           <View style={styles.totalBox}>
             <Text style={styles.totalLabel}>ESTIMATED TOTAL (APPROXIMATE)</Text>
@@ -438,25 +539,8 @@ function EstimatePdfDocument({ template, state, estimate, deliverables }: PdfPro
             </Text>
           </View>
 
-          {deliverables.length > 0 && (
-            <>
-              <View style={styles.divider} />
-              <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
-              {deliverables.map((g) => (
-                <View key={g.group} style={{ marginBottom: 4 }}>
-                  <Text style={styles.groupLabel}>{g.group}</Text>
-                  {g.items.map((d) => (
-                    <View key={d.id} style={styles.deliverable}>
-                      <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
-                      <Text style={styles.deliverableText}>
-                        {d.label}
-                        {d.detail ? `  (${d.detail})` : ""}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              ))}
-            </>
+          {subEventDeliverables.length > 0 && (
+            <PdfDeliverablesSection subEventDeliverables={subEventDeliverables} />
           )}
 
           <Text style={styles.disclaimer}>

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { loadTemplates } from "@/lib/estimator/templates";
 import { calculateEstimate } from "@/lib/estimator/pricing";
-import { generateDeliverables } from "@/lib/estimator/deliverables";
+import { generateSubEventDeliverables } from "@/lib/estimator/deliverables";
 import { sanitizeState } from "@/lib/estimator/state";
 import { renderEstimatePdf } from "@/lib/estimator/pdf";
 import type { EstimatorState } from "@/lib/estimator/types";
@@ -39,13 +39,13 @@ export async function POST(request: NextRequest) {
     if (estimate.isEmpty) {
       return new Response("Nothing selected to estimate", { status: 400 });
     }
-    const deliverables = generateDeliverables(state, template);
+    const subEventDeliverables = generateSubEventDeliverables(state, template);
 
     const pdf = await renderEstimatePdf({
       template,
       state,
       estimate,
-      deliverables,
+      subEventDeliverables,
     });
 
     return new Response(new Uint8Array(pdf), {

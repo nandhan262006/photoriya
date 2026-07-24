@@ -20,6 +20,7 @@ export const STEPS = [
 export const initialState: EstimatorState = {
   clientName: "",
   clientPhone: "",
+  estimatedDate: "",
   eventTypeId: null,
   selectedSubEvents: [],
   subEventConfig: {},
@@ -29,6 +30,7 @@ export const initialState: EstimatorState = {
 
 export type EstimatorAction =
   | { type: "SET_CLIENT_INFO"; field: "clientName" | "clientPhone"; value: string }
+  | { type: "SET_ESTIMATED_DATE"; value: string }
   | {
       type: "SET_EVENT_TYPE";
       eventTypeId: ID;
@@ -77,6 +79,10 @@ export function estimatorReducer(
         ...state,
         [action.field]: action.value,
       };
+    }
+
+    case "SET_ESTIMATED_DATE": {
+      return { ...state, estimatedDate: action.value };
     }
 
     case "SET_EVENT_TYPE": {
@@ -278,6 +284,7 @@ export function sanitizeState(
   return {
     clientName: typeof s.clientName === "string" ? s.clientName : "",
     clientPhone: typeof s.clientPhone === "string" ? s.clientPhone.replace(/\D/g, "").slice(0, 10) : "",
+    estimatedDate: typeof s.estimatedDate === "string" ? s.estimatedDate : "",
     eventTypeId: template.id,
     selectedSubEvents,
     subEventConfig,

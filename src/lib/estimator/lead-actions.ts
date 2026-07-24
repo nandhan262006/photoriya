@@ -10,6 +10,7 @@ export async function saveEstimateLead(data: {
   clientPhone: string;
   eventType: string;
   eventName: string;
+  estimatedDate: string;
   estimateData: string;
 }) {
   const db = getDb();

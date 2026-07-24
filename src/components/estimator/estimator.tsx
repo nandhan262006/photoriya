@@ -33,7 +33,7 @@ export function Estimator({ templates }: { templates: EventTemplate[] }) {
 const SKIPPABLE_STEPS = new Set([3, 4, 5]);
 
 function EstimatorShell() {
-  const { state, dispatch, estimate, deliverables, template } = useEstimator();
+  const { state, dispatch, estimate, deliverables, subEventDeliverables, template } = useEstimator();
   const lastStep = STEPS.length - 1;
   const savedRef = useRef(false);
 
@@ -46,7 +46,8 @@ function EstimatorShell() {
         clientPhone: state.clientPhone,
         eventType: state.eventTypeId,
         eventName: template?.name ?? "",
-        estimateData: JSON.stringify({ state, estimate, deliverables }),
+        estimatedDate: state.estimatedDate,
+        estimateData: JSON.stringify({ state, estimate, deliverables, subEventDeliverables }),
       }).catch(() => {
         console.warn("Failed to auto-save estimate lead");
       });
